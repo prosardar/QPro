@@ -43,7 +43,7 @@ namespace Qviipro {
                 }
             }
             index = Guid.NewGuid().ToString();
-            var item = new QviiItemCache() {
+            var item = new QviiItemCache {
                 RuleGuid = ruleGuid,
                 ResponseId = transferItem.BrowserSocket.guid,
                 RequestLine = requestLine,
@@ -84,7 +84,7 @@ namespace Qviipro {
         }
 
         public void Remove(string key) {
-            RemoveItemFromCache(key);
+            RemoveItemFromCache(key, null);
         }
 
         private bool ContainsItem(Guid ruleGuid, string url, out string index) {

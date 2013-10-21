@@ -11,6 +11,8 @@ namespace Qviipro {
         private readonly ManualResetEvent listenThreadSwitch;
         private readonly bool useIPv6;
 
+        private Socket ListeningSocket;
+
         /// <summary>
         ///     Set of open sockets, indexed by socket identifier
         /// </summary>
@@ -76,9 +78,8 @@ namespace Qviipro {
         /// </summary>
         public bool IsListening { get; protected set; }
 
-        public void Start(IPEndPoint endPoint) {
-            EndPoint = endPoint;
-
+        public IPEndPoint Start() {
+            ListeningSocket = null;
             InitListenException = null;
             InitListenFinished.Reset();
             IsListening = false;
@@ -92,6 +93,10 @@ namespace Qviipro {
 
             const int cleanTimeout = 300 * 1000; // in ms
             cleanTimer = new Timer(CheckSockets, null, cleanTimeout, cleanTimeout);
+
+            InitListenFinished.WaitOne();
+            EndPoint = (IPEndPoint)ListeningSocket.LocalEndPoint;
+            return EndPoint;
         }
 
         public void Stop() {
@@ -131,7 +136,6 @@ namespace Qviipro {
         }
 
         private void StartThread() {
-            Socket ListeningSocket = null;
             try {
                 StartListening(ref ListeningSocket);
             }
@@ -162,10 +166,11 @@ namespace Qviipro {
                                    : AddressFamily.InterNetwork;
 
             ListeningSocket = new Socket(af, SocketType.Stream, ProtocolType.Tcp);
+            var endPoint = new IPEndPoint(IPAddress.Loopback, 0);
 
             // Bind the socket to the local endpoint and listen for incoming
             // connections.
-            ListeningSocket.Bind(EndPoint);
+            ListeningSocket.Bind(endPoint);
             ListeningSocket.Listen(1000);
 
             // Notify that the listening thread is up and running
@@ -186,8 +191,8 @@ namespace Qviipro {
                     listenThreadSwitch.WaitOne();
                 }
             }
-            catch (Exception e) {}
-            finally {}
+            catch (Exception e) { }
+            finally { }
         }
 
         /// <summary>
@@ -272,11 +277,11 @@ namespace Qviipro {
                                 ConnectedSockets.Remove(id);
                             }
                         }
-                        catch (Exception e) {}
+                        catch (Exception e) { }
                     }
                 }
             }
-            catch {}
+            catch { }
         }
 
         /// <summary>

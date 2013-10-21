@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Text.RegularExpressions;
 using Qviipro;
 using Qviipro.Rules;
 
@@ -13,7 +12,7 @@ namespace TestQviiproApplication {
         static void Main(string[] args) {
             InitializeConsoleHandlerRoutine();
 
-            InitializeProxy(3355);
+            InitializeProxy();
 
             Console.WriteLine("Server started");
             Console.WriteLine("To exit press CTRL+C");
@@ -45,9 +44,8 @@ namespace TestQviiproApplication {
             ConsoleUtils.SetConsoleCtrlHandler(consoleHandlerRoutine, true);
         }
 
-        private static void InitializeProxy(int port) {
+        private static void InitializeProxy() {
             proxy = new QviiProxy();
-            proxy.Initialize(port);
 
             var rule = new QviiRegexRule();
             rule.Behavior = QviiBehavior.Redirect;

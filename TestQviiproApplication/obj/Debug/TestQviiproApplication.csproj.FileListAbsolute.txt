@@ -5,3 +5,4 @@ E:\Projects\Proxy\Qviipro\TestQviiproApplication\bin\Debug\Qviipro.pdb
 E:\Projects\Proxy\Qviipro\TestQviiproApplication\obj\Debug\TestQviiproApplication.csprojResolveAssemblyReference.cache
 E:\Projects\Proxy\Qviipro\TestQviiproApplication\obj\Debug\TestQviiproApplication.exe
 E:\Projects\Proxy\Qviipro\TestQviiproApplication\obj\Debug\TestQviiproApplication.pdb
+E:\Projects\Proxy\Qviipro\TestQviiproApplication\bin\Debug\TestQviiproApplication.exe.config

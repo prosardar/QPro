@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using Qviipro.Rules;
 
 namespace Qviipro {
@@ -47,20 +48,16 @@ namespace Qviipro {
             }
         }
 
-        public void AddBlackItem() {}
+        public void AddBlackItem() { }
 
-        public void RemoveBlackItem() {}
+        public void RemoveBlackItem() { }
 
         public List<QviiItemCache> GetItemsFromCacheByRule(QviiRule rule) {
-            var cacheItems = new List<QviiItemCache>();
-            cacheItems = cache.GetItems(rule.Guid);
-            return cacheItems;
+            return cache.GetItems(rule.Guid);
         }
 
         public List<QviiItemCache> GetItemsFromCacheByUrl(string url) {
-            var cacheItems = new List<QviiItemCache>();
-            cacheItems = cache.GetItems(url);
-            return cacheItems;
+            return cache.GetItems(url);
         }
 
         public void RemoveItemFromCache(string key) {
@@ -76,11 +73,9 @@ namespace Qviipro {
 
         private bool CheckOnBlackList(TransferItem item) {
             // In BlackList must be rule with QviiBehavior = Block
-            foreach (var rule in BlackList) {
-                if (rule.IsAccept(item.HttpRequestLine.URI)) {
-                    item.State.NextStep = null;
-                    return false;
-                }
+            if (BlackList.Any(rule => rule.IsAccept(item.HttpRequestLine.URI))) {
+                item.State.NextStep = null;
+                return false;
             }
             return true;
         }
@@ -98,15 +93,10 @@ namespace Qviipro {
         }
 
         protected override void OnReceiveResponse(TransferItem item) {
-            foreach (var rule in Rules) {
-                if (rule.IsAccept(item.HttpRequestLine.URL)) {
-                    if (rule.IsStoreResponse) {
-                        var str = item.Transfer.GetContent();
-                        if (string.IsNullOrEmpty(str) == false && item.ResponseStatusLine.StatusCode != 304) {
-                            cache.SetValue(item.BrowserSocket.guid, str);
-                        }
-                        break;
-                    }
+            if (Rules.Where(rule => rule.IsAccept(item.HttpRequestLine.URL)).Any(rule => rule.IsStoreResponse)) {
+                var str = item.Transfer.GetContent();
+                if (string.IsNullOrEmpty(str) == false && item.ResponseStatusLine.StatusCode != 304) {
+                    cache.SetValue(item.BrowserSocket.guid, str);
                 }
             }
         }
