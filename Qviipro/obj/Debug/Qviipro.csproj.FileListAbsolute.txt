@@ -1,0 +1,6 @@
+E:\Projects\Proxy\Qviipro\Qviipro\bin\Debug\Qviipro.dll
+E:\Projects\Proxy\Qviipro\Qviipro\bin\Debug\Qviipro.pdb
+E:\Projects\Proxy\Qviipro\Qviipro\bin\Debug\log4net.dll
+E:\Projects\Proxy\Qviipro\Qviipro\obj\Debug\Qviipro.dll
+E:\Projects\Proxy\Qviipro\Qviipro\obj\Debug\Qviipro.pdb
+E:\Projects\Proxy\Qviipro\Qviipro\obj\Debug\Qviipro.csprojResolveAssemblyReference.cache
