@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace Qviipro.HttpParser {
     public class ItemCollection : Dictionary<string, ItemBase> {
-        public ItemCollection() : base(StringComparer.CurrentCultureIgnoreCase) { }
+        public ItemCollection() : base(StringComparer.CurrentCultureIgnoreCase) {}
 
         public void AddItem(string key, string source) {
             switch (key.Trim().ToLower()) {
@@ -28,8 +28,9 @@ namespace Qviipro.HttpParser {
             string result = "";
             foreach (string k in Keys) {
                 ItemBase itm = this[k];
-                if (!String.IsNullOrEmpty(result))
+                if (!String.IsNullOrEmpty(result)) {
                     result += "\r\n";
+                }
                 result += String.Format("{0}: {1}", k, itm.Source);
             }
             return result;

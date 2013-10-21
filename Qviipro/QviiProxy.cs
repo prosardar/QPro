@@ -4,10 +4,9 @@ using Qviipro.Rules;
 
 namespace Qviipro {
     public class QviiProxy : BaseProxy {
-        private readonly QviiCache cache;
-
-        public readonly List<QviiRule> Rules;
         public readonly List<QviiRule> BlackList;
+        public readonly List<QviiRule> Rules;
+        private readonly QviiCache cache;
 
         public QviiProxy() {
             cache = new QviiCache();
@@ -48,13 +47,9 @@ namespace Qviipro {
             }
         }
 
-        public void AddBlackItem() {
+        public void AddBlackItem() {}
 
-        }
-
-        public void RemoveBlackItem() {
-
-        }
+        public void RemoveBlackItem() {}
 
         public List<QviiItemCache> GetItemsFromCacheByRule(QviiRule rule) {
             var cacheItems = new List<QviiItemCache>();

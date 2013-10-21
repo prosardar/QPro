@@ -1,39 +1,23 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
+using ThreadState = System.Threading.ThreadState;
 
 namespace Qviipro {
     public class QviiServer {
-        private Thread listeningThread;
-
-        readonly bool useIPv6;
-
-        readonly ManualResetEvent listenThreadSwitch;
+        private readonly ManualResetEvent listenThreadSwitch;
+        private readonly bool useIPv6;
 
         /// <summary>
-        /// Incremented at every client connection
-        /// </summary>
-        int lastClientId;
-
-        /// <summary>
-        /// Timer that calls CheckSockets regularly
-        /// </summary>
-        Timer cleanTimer;
-
-        /// <summary>
-        /// Set of open sockets, indexed by socket identifier
+        ///     Set of open sockets, indexed by socket identifier
         /// </summary>
         protected Dictionary<Guid, SocketState> ConnectedSockets;
 
         /// <summary>
-        /// Set to true if the server is about to shut down
-        /// </summary>
-        protected bool IsShuttingDown { get; private set; }
-
-        /// <summary>
-        /// Port used for local browser-proxy communication
+        ///     Port used for local browser-proxy communication
         /// </summary>
         protected IPEndPoint EndPoint;
 
@@ -41,30 +25,16 @@ namespace Qviipro {
         public Action<TransferItem> OnReceiveResponse;
 
         /// <summary>
-        /// If not null, specify which address the listening socket should
-        /// be bound to. If null, it will default to the loopback address.
+        ///     Timer that calls CheckSockets regularly
         /// </summary>
-        public IPAddress BindAddress { get; set; }
+        private Timer cleanTimer;
 
         /// <summary>
-        /// Set if an error has occured while the server was initializing
-        /// the listening thread
+        ///     Incremented at every client connection
         /// </summary>
-        public Exception InitListenException { get; protected set; }
+        private int lastClientId;
 
-        /// <summary>
-        /// Set when the listening thread has finished its initialization
-        /// (either successfully, or an exception has been thrown)
-        /// </summary>
-        /// <seealso cref="InitListenException"/>
-        /// <seealso cref="IsListening"/>
-        public ManualResetEvent InitListenFinished { get; protected set; }
-
-        /// <summary>
-        /// Set to true if the listening thread is currently listening
-        /// for incoming connections
-        ///</summary>
-        public bool IsListening { get; protected set; }
+        private Thread listeningThread;
 
         public QviiServer(bool useIPv6) {
             this.useIPv6 = useIPv6;
@@ -75,8 +45,39 @@ namespace Qviipro {
             listeningThread = null;
         }
 
+        /// <summary>
+        ///     Set to true if the server is about to shut down
+        /// </summary>
+        protected bool IsShuttingDown { get; private set; }
+
+        /// <summary>
+        ///     If not null, specify which address the listening socket should
+        ///     be bound to. If null, it will default to the loopback address.
+        /// </summary>
+        public IPAddress BindAddress { get; set; }
+
+        /// <summary>
+        ///     Set if an error has occured while the server was initializing
+        ///     the listening thread
+        /// </summary>
+        public Exception InitListenException { get; protected set; }
+
+        /// <summary>
+        ///     Set when the listening thread has finished its initialization
+        ///     (either successfully, or an exception has been thrown)
+        /// </summary>
+        /// <seealso cref="InitListenException" />
+        /// <seealso cref="IsListening" />
+        public ManualResetEvent InitListenFinished { get; protected set; }
+
+        /// <summary>
+        ///     Set to true if the listening thread is currently listening
+        ///     for incoming connections
+        /// </summary>
+        public bool IsListening { get; protected set; }
+
         public void Start(IPEndPoint endPoint) {
-            this.EndPoint = endPoint;
+            EndPoint = endPoint;
 
             InitListenException = null;
             InitListenFinished.Reset();
@@ -113,7 +114,9 @@ namespace Qviipro {
                         sock.Connect(EndPoint);
                         sock.Close();
                     }
-                    catch { /* ignore */ }
+                    catch {
+                        /* ignore */
+                    }
                 }
 
                 if (listeningThread.ThreadState == ThreadState.WaitSleepJoin) {
@@ -155,8 +158,8 @@ namespace Qviipro {
 
             // Create a TCP/IP socket
             AddressFamily af = useIPv6
-                ? AddressFamily.InterNetworkV6
-                : AddressFamily.InterNetwork;
+                                   ? AddressFamily.InterNetworkV6
+                                   : AddressFamily.InterNetwork;
 
             ListeningSocket = new Socket(af, SocketType.Stream, ProtocolType.Tcp);
 
@@ -183,16 +186,12 @@ namespace Qviipro {
                     listenThreadSwitch.WaitOne();
                 }
             }
-            catch (Exception e) {
-
-            }
-            finally {
-
-            }
+            catch (Exception e) {}
+            finally {}
         }
 
         /// <summary>
-        /// Callback method for accepting new connections
+        ///     Callback method for accepting new connections
         /// </summary>
         private void AcceptCallback(IAsyncResult ar) {
             if (listeningThread.ManagedThreadId == Thread.CurrentThread.ManagedThreadId) {
@@ -241,8 +240,12 @@ namespace Qviipro {
                     }
                 }
             }
-            catch (SocketException) { /* ignore */ }
-            catch (IoBroken) { /* ignore */ }
+            catch (SocketException) {
+                /* ignore */
+            }
+            catch (IoBroken) {
+                /* ignore */
+            }
             catch (Exception e) {
                 Console.WriteLine(e.Message);
                 Console.WriteLine("Closing socket on error");
@@ -252,13 +255,13 @@ namespace Qviipro {
         }
 
         /// <summary>
-        /// Close broken sockets
+        ///     Close broken sockets
         /// </summary>
         /// <remarks>
-        /// This function is called regularly to clean up the list of
-        /// connected sockets.
+        ///     This function is called regularly to clean up the list of
+        ///     connected sockets.
         /// </remarks>
-        void CheckSockets(object eventState) {
+        private void CheckSockets(object eventState) {
             try {
                 lock (ConnectedSockets) {
                     foreach (var kv in ConnectedSockets) {
@@ -269,28 +272,26 @@ namespace Qviipro {
                                 ConnectedSockets.Remove(id);
                             }
                         }
-                        catch (Exception e) {
-
-                        }
+                        catch (Exception e) {}
                     }
                 }
             }
-            catch { }
+            catch {}
         }
 
         /// <summary>
-        /// Remove the socket contained in the given state object
-        /// from the connected array list and hash table, then close the
-        /// socket
+        ///     Remove the socket contained in the given state object
+        ///     from the connected array list and hash table, then close the
+        ///     socket
         /// </summary>
-        virtual protected void CloseSocket(SocketState state) {
+        protected virtual void CloseSocket(SocketState state) {
             lock (ConnectedSockets) {
                 SocketState actual_state;
                 if (ConnectedSockets.TryGetValue(state.guid, out actual_state) == false) {
                     return;
                 }
 
-                System.Diagnostics.Debug.Assert(actual_state == state);
+                Debug.Assert(actual_state == state);
                 ConnectedSockets.Remove(state.guid);
             }
 

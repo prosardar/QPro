@@ -3,35 +3,18 @@ using System.Text.RegularExpressions;
 
 namespace Qviipro.HttpParser {
     public class ItemContentType : ItemBase {
-
-        private readonly string value = "text/plain";
         private readonly string charset = "utf8";
-
-        /// <summary>
-        /// Тип содержимого
-        /// </summary>
-        public string Value {
-            get {
-                return value;
-            }
-        }
-
-        /// <summary>
-        /// Кодировка
-        /// </summary>
-        public string Charset {
-            get {
-                return charset;
-            }
-        }
+        private readonly string value = "text/plain";
 
         public ItemContentType(string source)
             : base(source) {
-            if (String.IsNullOrEmpty(source))
+            if (String.IsNullOrEmpty(source)) {
                 return;
+            }
             // ищем в источнике первое вхождение точки с запятой
             int typeTail = source.IndexOf(";");
-            if (typeTail == -1) { // все содержимое источника является информацией о типа
+            if (typeTail == -1) {
+                // все содержимое источника является информацией о типа
                 value = source.Trim().ToLower();
                 return; // других параметров нет, выходим
             }
@@ -45,6 +28,24 @@ namespace Qviipro.HttpParser {
                     charset = m.Groups["value"].Value;
                     // можно добавить обработку и других параметров, если таковые будут, что маловероятно
                 }
+            }
+        }
+
+        /// <summary>
+        ///     Тип содержимого
+        /// </summary>
+        public string Value {
+            get {
+                return value;
+            }
+        }
+
+        /// <summary>
+        ///     Кодировка
+        /// </summary>
+        public string Charset {
+            get {
+                return charset;
             }
         }
     }

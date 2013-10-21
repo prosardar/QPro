@@ -27,7 +27,7 @@ namespace Qviipro.Rules {
         public bool IsAllStoreResponse { get; set; }
 
         public abstract bool IsAccept(string url);
-        
+
         public abstract string Redirect(string url);
     }
 }

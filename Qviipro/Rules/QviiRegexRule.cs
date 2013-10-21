@@ -2,7 +2,6 @@
 
 namespace Qviipro.Rules {
     public class QviiRegexRule : QviiRule {
-      
         public override bool IsAccept(string url) {
             var regex = new Regex(Pattern);
             var matches = regex.Matches(url);

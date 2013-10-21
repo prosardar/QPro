@@ -77,6 +77,7 @@ namespace TestQviiproApplication {
             rule5.Behavior = QviiBehavior.Redirect;
             rule5.Pattern = @"(http://w.+dwar.+)user_social.php";
             rule5.RedirectPattern = @"$1action_run.phpp";
+            proxy.AddRule(rule5);
         }
 
         private static bool ConsoleHandlerRoutine(CtrlTypes type) {

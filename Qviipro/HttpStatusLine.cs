@@ -2,38 +2,23 @@
 
 namespace Qviipro {
     /// <summary>
-    /// Container for a HTTP status line,
-    /// i.e. the first line of a HTTP response
+    ///     Container for a HTTP status line,
+    ///     i.e. the first line of a HTTP response
     /// </summary>
     public class HttpStatusLine {
         /// <summary>
-        /// The version of the HTTP protocol.
-        /// </summary>
-        /// <remarks>
-        /// For example, "1.1" means "HTTP/1.1"
-        /// </remarks>
-        public string ProtocolVersion { get; protected set; }
-
-        /// <summary>
-        /// The parsed HTTP status code
-        /// </summary>
-        /// <remarks>
-        /// Integer value between 100 and 599 included
-        /// </remarks>
-        public int StatusCode { get; protected set; }
-
-        /// <summary>
-        /// Original status line as seen in the TCP stream
+        ///     Original status line as seen in the TCP stream
         /// </summary>
         public readonly string StatusLine;
-        
-        readonly char[] sp = { ' ' };
+
+        private readonly char[] sp = {
+            ' '
+        };
 
         internal HttpStatusLine(SocketState hs) {
             string line;
             do
-                line = hs.ReadAsciiLine().Trim();
-            while (line.Length == 0);
+                line = hs.ReadAsciiLine().Trim(); while (line.Length == 0);
 
             string[] items = line.Split(sp, StringSplitOptions.RemoveEmptyEntries);
 
@@ -57,12 +42,28 @@ namespace Qviipro {
             StatusLine = line;
         }
 
+        /// <summary>
+        ///     The version of the HTTP protocol.
+        /// </summary>
+        /// <remarks>
+        ///     For example, "1.1" means "HTTP/1.1"
+        /// </remarks>
+        public string ProtocolVersion { get; protected set; }
+
+        /// <summary>
+        ///     The parsed HTTP status code
+        /// </summary>
+        /// <remarks>
+        ///     Integer value between 100 and 599 included
+        /// </remarks>
+        public int StatusCode { get; protected set; }
+
         internal void SendTo(SocketState hs) {
             hs.WriteAsciiLine(StatusLine);
         }
 
         /// <summary>
-        /// Return a string representation of the instance
+        ///     Return a string representation of the instance
         /// </summary>
         public override string ToString() {
             return StatusLine;

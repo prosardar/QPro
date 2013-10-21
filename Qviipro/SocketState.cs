@@ -1,54 +1,42 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Net.Sockets;
 using System.Text;
 
 namespace Qviipro {
     /// <summary>
-    /// Communication state between two hosts
+    ///     Communication state between two hosts
     /// </summary>
     public class SocketState : IDisposable {
         /// <summary>
-        /// Socket UID.
-        /// </summary>
-        public Guid guid;
-
-        /// <summary>
-        /// Set the TCP Keep Alive option on the socket
-        /// </summary>
-        public bool KeepAlive {
-            get { return keepAlive; }
-            set {
-                if (keepAlive != value) {
-                    LowLevelSocket.SetSocketOption(SocketOptionLevel.Socket,
-                        SocketOptionName.KeepAlive, value);
-                    keepAlive = value;
-                }
-            }
-        }
-        bool keepAlive;
-
-        /// <summary>
-        /// Socket-level event handler for HTTP message packets
+        ///     Socket-level event handler for HTTP message packets
         /// </summary>
         /// <param name="packet">
-        /// Buffer containing the message packet, or null if there is
-        /// no more packets in the current message
+        ///     Buffer containing the message packet, or null if there is
+        ///     no more packets in the current message
         /// </param>
         /// <param name="offset">
-        /// Start offset of the packet in the buffer
+        ///     Start offset of the packet in the buffer
         /// </param>
         /// <param name="nb_bytes">
-        /// Fragment size in bytes, or 0 if there is no more packets
+        ///     Fragment size in bytes, or 0 if there is no more packets
         /// </param>
         /// <remarks>
-        /// Messages are fragmented because of the limited buffer size, or
-        /// whenever the remote server is sending the message using the
-        /// chunked transfer encoding.
+        ///     Messages are fragmented because of the limited buffer size, or
+        ///     whenever the remote server is sending the message using the
+        ///     chunked transfer encoding.
         /// </remarks>
         public delegate void MessagePacketHandler(byte[] packet, uint offset, uint nb_bytes);
 
         /// <summary>
-        /// Wrap a Socket instance into a HttpSocket instance
+        ///     Socket UID.
+        /// </summary>
+        public Guid guid;
+
+        private bool keepAlive;
+
+        /// <summary>
+        ///     Wrap a Socket instance into a HttpSocket instance
         /// </summary>
         public SocketState(Socket socket) {
             LowLevelSocket = socket;
@@ -58,7 +46,23 @@ namespace Qviipro {
         }
 
         /// <summary>
-        /// Close the wrapped socket
+        ///     Set the TCP Keep Alive option on the socket
+        /// </summary>
+        public bool KeepAlive {
+            get {
+                return keepAlive;
+            }
+            set {
+                if (keepAlive != value) {
+                    LowLevelSocket.SetSocketOption(SocketOptionLevel.Socket,
+                                                   SocketOptionName.KeepAlive, value);
+                    keepAlive = value;
+                }
+            }
+        }
+
+        /// <summary>
+        ///     Close the wrapped socket
         /// </summary>
         public void Dispose() {
             if (LowLevelSocket != null) {
@@ -70,12 +74,12 @@ namespace Qviipro {
 
         #region I/O level 1: plain C# socket interface
         /// <summary>
-        /// Returns the wrapped socket
+        ///     Returns the wrapped socket
         /// </summary>
         protected Socket LowLevelSocket = null;
 
         /// <summary>
-        /// Close the internal socket
+        ///     Close the internal socket
         /// </summary>
         public void CloseSocket() {
             if (LowLevelSocket == null) {
@@ -84,20 +88,24 @@ namespace Qviipro {
             try {
                 LowLevelSocket.Shutdown(SocketShutdown.Both);
             }
-            catch { /* ignore */ }
+            catch {
+                /* ignore */
+            }
 
             try {
                 LowLevelSocket.Close();
             }
-            catch { /* ignore */ }
+            catch {
+                /* ignore */
+            }
             LowLevelSocket = null;
         }
 
         /// <summary>
-        /// Returns true if the socket has been closed, or has become
-        /// unresponsive
+        ///     Returns true if the socket has been closed, or has become
+        ///     unresponsive
         /// </summary>
-        public bool IsSocketDead(/*bool bTestSend*/) {
+        public bool IsSocketDead( /*bool bTestSend*/) {
             if (LowLevelSocket == null) {
                 return true;
             }
@@ -124,34 +132,41 @@ namespace Qviipro {
         #endregion
 
         #region I/O level 2: Buffered line-based and raw I/O
+        private const uint BufferSize = 8192;
 
-        uint BufferPosition;
+        private static readonly byte[] b_CRLF = {
+            0x0d, 0x0a
+        };
 
-        const uint BufferSize = 8192;
+        private static readonly char[] c_ChunkSizeEnd = {
+            ' ', ';'
+        };
+
+        private readonly StringBuilder sb;
+        private uint BufferPosition;
+
+        /// <summary>
+        ///     True if ReadAsciiLine may have loaded bytes in the buffer
+        ///     that ReadRaw should use
+        /// </summary>
+        private bool UseLeftOverBytes;
+
         // 8192 seems to be the default buffer size for the Socket object
 
         /// <summary>
-        /// How many bytes of data are available in the receive buffer
-        /// (starting at offset 0)
+        ///     How many bytes of data are available in the receive buffer
+        ///     (starting at offset 0)
         /// </summary>
         protected uint AvailableData { get; private set; }
 
         /// <summary>
-        /// Receive buffer
+        ///     Receive buffer
         /// </summary>
         public byte[] SocketBuffer { get; protected set; }
 
         /// <summary>
-        /// True if ReadAsciiLine may have loaded bytes in the buffer
-        /// that ReadRaw should use
-        /// </summary>
-        bool UseLeftOverBytes;
-
-        readonly StringBuilder sb;
-
-        /// <summary>
-        /// Reads a LF-delimited (or CRLF-delimited) line from the socket,
-        /// and returns it (without the trailing newline character)
+        ///     Reads a LF-delimited (or CRLF-delimited) line from the socket,
+        ///     and returns it (without the trailing newline character)
         /// </summary>
         /// Content is expected to be in ASCII 8-bit (UTF-8 also works).
         public string ReadAsciiLine() {
@@ -190,12 +205,12 @@ namespace Qviipro {
         }
 
         /// <summary>
-        /// Read buffered binary data
+        ///     Read buffered binary data
         /// </summary>
         /// <remarks>
-        /// A read operation (for instance, ReadAsciiLine) may have loaded
-        /// the buffer with some data which ended up not being used.
-        /// If that's the case, then ReadBinary uses it (ReadRaw does not).
+        ///     A read operation (for instance, ReadAsciiLine) may have loaded
+        ///     the buffer with some data which ended up not being used.
+        ///     If that's the case, then ReadBinary uses it (ReadRaw does not).
         /// </remarks>
         public uint ReadBinary() {
             bool bLeftOver = UseLeftOverBytes;
@@ -216,12 +231,12 @@ namespace Qviipro {
         }
 
         /// <summary>
-        /// Read a block of data from the socket; unread data that was in the
-        /// buffer is dropped
+        ///     Read a block of data from the socket; unread data that was in the
+        ///     buffer is dropped
         /// </summary>
         /// <remarks>
-        /// BufferPosition is reset. If there were unread data in the buffer,
-        /// it's lost.
+        ///     BufferPosition is reset. If there were unread data in the buffer,
+        ///     it's lost.
         /// </remarks>
         protected uint ReadRaw() {
             int r = LowLevelSocket.Receive(SocketBuffer);
@@ -234,7 +249,7 @@ namespace Qviipro {
             // So if Receive() returns 0, it really means the connection
             // has been closed.
 
-            System.Diagnostics.Debug.Assert(r >= 0);
+            Debug.Assert(r >= 0);
             // Note: r = 0 means connection closed
 
             AvailableData = (uint)r;
@@ -243,8 +258,8 @@ namespace Qviipro {
         }
 
         /// <summary>
-        /// Transfer data from this socket to the destination socket
-        /// until this socket closes
+        ///     Transfer data from this socket to the destination socket
+        ///     until this socket closes
         /// </summary>
         /// <returns>The number of bytes sent</returns>
         public uint TunnelDataTo(SocketState dest) {
@@ -263,14 +278,16 @@ namespace Qviipro {
                     ReadRaw();
                 }
             }
-            catch (SocketException) { /* ignore */ }
+            catch (SocketException) {
+                /* ignore */
+            }
 
             return total_sent;
         }
 
         /// <summary>
-        /// Transfer data from the socket to the specified packet handler
-        /// until the socket closes
+        ///     Transfer data from the socket to the specified packet handler
+        ///     until the socket closes
         /// </summary>
         /// <returns>The number of bytes sent</returns>
         public uint TunnelDataTo(MessagePacketHandler mph) {
@@ -286,27 +303,29 @@ namespace Qviipro {
                     ReadRaw();
                 }
             }
-            catch (SocketException) { /* ignore */ }
+            catch (SocketException) {
+                /* ignore */
+            }
 
             return total_sent;
         }
 
         /// <summary>
-        /// Read <c>nb_bytes</c> bytes from the socket,
-        /// and send it to the destination socket
+        ///     Read <c>nb_bytes</c> bytes from the socket,
+        ///     and send it to the destination socket
         /// </summary>
         /// <returns>The number of bytes sent</returns>
         public uint TunnelDataTo(SocketState dest, uint nb_bytes) {
             return TunnelDataTo((b, o, s) => {
-                if (dest.WriteBinary(b, o, s) < s) {
-                    throw new IoBroken();
-                }
-            }, nb_bytes);
+                                    if (dest.WriteBinary(b, o, s) < s) {
+                                        throw new IoBroken();
+                                    }
+                                }, nb_bytes);
         }
 
         /// <summary>
-        /// Read <c>nb_bytes</c> bytes from the socket,
-        /// and send it to the specified packet handler
+        ///     Read <c>nb_bytes</c> bytes from the socket,
+        ///     and send it to the specified packet handler
         /// </summary>
         /// <returns>The number of bytes sent</returns>
         public uint TunnelDataTo(MessagePacketHandler mph, uint nb_bytes) {
@@ -333,7 +352,7 @@ namespace Qviipro {
         }
 
         /// <summary>
-        /// Sends a buffer to the specified packet handler
+        ///     Sends a buffer to the specified packet handler
         /// </summary>
         /// <returns>The number of bytes sent</returns>
         public uint TunnelDataTo(MessagePacketHandler mph, byte[] buffer) {
@@ -342,7 +361,7 @@ namespace Qviipro {
         }
 
         /// <summary>
-        /// Fills the buffer with an unknown amount of data from the socket
+        ///     Fills the buffer with an unknown amount of data from the socket
         /// </summary>
         /// <param name="buffer">data from the socket</param>
         /// <returns>total bytes</returns>
@@ -383,7 +402,7 @@ namespace Qviipro {
         }
 
         /// <summary>
-        /// Write data from a buffer to the socket
+        ///     Write data from a buffer to the socket
         /// </summary>
         public uint TunnelDataTo(byte[] buffer, uint byte_count) {
             uint total_sent = 0;
@@ -399,8 +418,8 @@ namespace Qviipro {
                     to_send = byte_count;
                 }
 
-                System.Buffer.BlockCopy(SocketBuffer, (int)BufferPosition, buffer,
-                    (int)total_sent, (int)to_send);
+                Buffer.BlockCopy(SocketBuffer, (int)BufferPosition, buffer,
+                                 (int)total_sent, (int)to_send);
 
                 total_sent += to_send;
                 byte_count -= to_send;
@@ -411,12 +430,9 @@ namespace Qviipro {
             return total_sent;
         }
 
-        static readonly byte[] b_CRLF = { 0x0d, 0x0a };
-        static readonly char[] c_ChunkSizeEnd = { ' ', ';' };
-
         /// <summary>
-        /// Write an ASCII string, a CR character, and a LF character to the
-        /// socket
+        ///     Write an ASCII string, a CR character, and a LF character to the
+        ///     socket
         /// </summary>
         public uint WriteAsciiLine(string s) {
             uint r = WriteBinary(Encoding.ASCII.GetBytes(s));
@@ -425,23 +441,23 @@ namespace Qviipro {
         }
 
         /// <summary>
-        /// Write an array of bytes to the socket
+        ///     Write an array of bytes to the socket
         /// </summary>
         public uint WriteBinary(byte[] b) {
             return WriteBinary(b, 0, (uint)b.Length);
         }
 
         /// <summary>
-        /// Write the first <c>nb_bytes</c> of <c>b</c> to the
-        /// socket
+        ///     Write the first <c>nb_bytes</c> of <c>b</c> to the
+        ///     socket
         /// </summary>
         public uint WriteBinary(byte[] b, uint nb_bytes) {
             return WriteBinary(b, 0, nb_bytes);
         }
 
         /// <summary>
-        /// Write <c>nb_bytes</c> of <c>b</c>, starting at offset
-        /// <c>offset</c> to the socket
+        ///     Write <c>nb_bytes</c> of <c>b</c>, starting at offset
+        ///     <c>offset</c> to the socket
         /// </summary>
         public uint WriteBinary(byte[] b, uint offset, uint nb_bytes) {
             LowLevelSocket.NoDelay = true;
@@ -455,10 +471,9 @@ namespace Qviipro {
         #endregion
 
         #region I/O level 3: HTTP-based I/O
-
-        void SendHttpError(string ErrorCodeAndReason) {
+        private void SendHttpError(string ErrorCodeAndReason) {
             string html_body = "<html>\n <body>\n  <h1>" +
-                ErrorCodeAndReason + "</h1>\n </body>\n</html>";
+                               ErrorCodeAndReason + "</h1>\n </body>\n</html>";
 
             WriteBinary(Encoding.ASCII.GetBytes(
                 "HTTP/1.0 " + ErrorCodeAndReason + "\r\n" +
@@ -468,70 +483,72 @@ namespace Qviipro {
         }
 
         /// <summary>
-        /// Send a HTTP 302 redirection over the socket
+        ///     Send a HTTP 302 redirection over the socket
         /// </summary>
         public void Send302() {
             SendHttpError("302 Found");
         }
 
         /// <summary>
-        /// Send a HTTP 400 error over the socket
+        ///     Send a HTTP 400 error over the socket
         /// </summary>
         public void Send400() {
             SendHttpError("400 Bad Request");
         }
 
         /// <summary>
-        /// Send a HTTP 403 error over the socket
+        ///     Send a HTTP 403 error over the socket
         /// </summary>
         public void Send403() {
             SendHttpError("403 Forbidden");
         }
 
         /// <summary>
-        /// Send a HTTP 404 error over the socket
+        ///     Send a HTTP 404 error over the socket
         /// </summary>
         public void Send404() {
             SendHttpError("404 Not Found");
         }
 
         /// <summary>
-        /// Send a HTTP 501 error over the socket
+        ///     Send a HTTP 501 error over the socket
         /// </summary>
         public void Send501() {
             SendHttpError("501 Not Implemented");
         }
 
         /// <summary>
-        /// Tunnel a HTTP-chunked blob of data
+        ///     Tunnel a HTTP-chunked blob of data
         /// </summary>
         /// <param name="dest">The destination socket</param>
         /// <remarks>
-        /// The tunneling stops when the last chunk, identified by a
-        /// size of 0, arrives. The optional trailing entities are also
-        /// transmitted (but otherwise ignored).
+        ///     The tunneling stops when the last chunk, identified by a
+        ///     size of 0, arrives. The optional trailing entities are also
+        ///     transmitted (but otherwise ignored).
         /// </remarks>
         public void TunnelChunkedDataTo(SocketState dest) {
             TunnelChunkedDataTo(dest, (b, o, s) => {
-                if (dest.WriteBinary(b, o, s) < s)
-                    throw new IoBroken();
-            });
+                                          if (dest.WriteBinary(b, o, s) < s) {
+                                              throw new IoBroken();
+                                          }
+                                      });
         }
 
         /// <summary>
-        /// Tunnel a HTTP-chunked blob of data to the specified packet handler
+        ///     Tunnel a HTTP-chunked blob of data to the specified packet handler
         /// </summary>
         /// <remarks>
-        /// The tunneling stops when the last chunk, identified by a
-        /// size of 0, arrives. The optional trailing entities are also
-        /// transmitted (but otherwise ignored).
+        ///     The tunneling stops when the last chunk, identified by a
+        ///     size of 0, arrives. The optional trailing entities are also
+        ///     transmitted (but otherwise ignored).
         /// </remarks>
         public void TunnelChunkedDataTo(MessagePacketHandler mph) {
             TunnelChunkedDataTo(null, mph);
         }
 
         /* Helper function */
-        void TunnelChunkedDataTo(SocketState dest, MessagePacketHandler mph) {
+
+        private void TunnelChunkedDataTo(SocketState dest, MessagePacketHandler mph) {
             // (RFC 2616, sections 3.6.1, 19.4.6)
             while (true) {
                 string chunk_header = ReadAsciiLine();
@@ -540,16 +557,16 @@ namespace Qviipro {
                 }
                 int sc = chunk_header.IndexOfAny(c_ChunkSizeEnd);
                 string hexa_size = sc > -1
-                    ? chunk_header.Substring(0, sc)
-                    : chunk_header;
+                                       ? chunk_header.Substring(0, sc)
+                                       : chunk_header;
                 uint size;
                 try {
                     size = Convert.ToUInt32(hexa_size, 16);
                 }
                 catch {
                     string s = chunk_header.Length > 20
-                        ? (chunk_header.Substring(0, 17) + "...")
-                        : chunk_header;
+                                   ? (chunk_header.Substring(0, 17) + "...")
+                                   : chunk_header;
                     throw new HttpProtocolBroken(
                         "Could not parse chunk size in: " + s);
                 }
@@ -563,7 +580,7 @@ namespace Qviipro {
                 TunnelDataTo(mph, size);
                 // Read/write one more CRLF
                 string new_line = ReadAsciiLine();
-                System.Diagnostics.Debug.Assert(new_line.Length == 0);
+                Debug.Assert(new_line.Length == 0);
                 if (dest != null) {
                     dest.WriteAsciiLine(new_line);
                 }
@@ -577,7 +594,6 @@ namespace Qviipro {
                 }
             } while (line.Length != 0);
         }
-
         #endregion
 
         public byte[] CopyBuffer() {

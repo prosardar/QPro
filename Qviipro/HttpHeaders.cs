@@ -1,167 +1,29 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Text;
 
 namespace Qviipro {
     /// <summary>
-    /// Container for a parsed copy of some headers relevant to the proxy,
-    /// along with an unparsed copy of all the headers with their order
-    /// unchanged
+    ///     Container for a parsed copy of some headers relevant to the proxy,
+    ///     along with an unparsed copy of all the headers with their order
+    ///     unchanged
     /// </summary>
     public class HttpHeaders {
-        enum HeaderType {
-            Uint,
-            String,
-            Strings
-        }
+        private static readonly string[] CRLF_a = {
+            "\r\n"
+        };
 
         /// <summary>
-        /// Cache-Control header value
-        /// </summary>
-        public string CacheControl {
-            get {
-                return GetItem<string>("Cache-Control");
-            }
-            set {
-                SetItem("Cache-Control", value, HeaderType.String);
-            }
-        }
-
-        /// <summary>
-        /// Connection header value
-        /// </summary>
-        public string[] Connection {
-            get {
-                return GetItem<string[]>("connection");
-            }
-            set {
-                SetItem("Connection", value, HeaderType.Strings);
-            }
-        }
-
-        /// <summary>
-        /// Content-Encoding header value
-        /// </summary>
-        public string ContentEncoding {
-            get {
-                return GetItem<string>("content-encoding");
-            }
-            set {
-                SetItem("Content-Encoding", value, HeaderType.String);
-            }
-        }
-
-        /// <summary>
-        /// Content-Length header value
-        /// </summary>
-        public uint? ContentLength {
-            get {
-                return GetItem<uint?>("content-length");
-            }
-            set {
-                SetItem("Content-Length", value, HeaderType.Uint);
-            }
-        }
-
-        /// <summary>
-        /// Expires header value
-        /// </summary>
-        public string Expires {
-            get {
-                return GetItem<string>("Expires");
-            }
-            set {
-                SetItem("Expires", value, HeaderType.String);
-            }
-        }
-
-        /// <summary>
-        /// Pragma header value
-        /// </summary>
-        public string Pragma {
-            get {
-                return GetItem<string>("Pragma");
-            }
-            set {
-                SetItem("Pragma", value, HeaderType.String);
-            }
-        }
-
-        /// <summary>
-        /// Map { header name } -> { header string value }
+        ///     Map { header name } -> { header parsed value }
         /// </summary>
         /// <remarks>
-        /// Keys are stored in lower-case characters.
-        /// Values have their spaces and trailing newlines trimmed.
+        ///     Keys are stored in lower-case characters.
         /// </remarks>
-        public Dictionary<string, string> Headers { get; protected set; }
+        private readonly Dictionary<string, object> ParsedHeaders;
 
         /// <summary>
-        /// HTTP headers as received (newline markers may have been fixed)
-        /// </summary>
-        /// <remarks>
-        /// If RemoveHeader has been called, then HeadersInOrder will be
-        /// modified. In particular, the header ordering may change.
-        /// </remarks>
-        public string HeadersInOrder { get; protected set; }
-
-        /// <summary>
-        /// Host header value
-        /// </summary>
-        public string Host {
-            get { return GetItem<string>("host"); }
-            set { SetItem("Host", value, HeaderType.String); }
-        }
-
-        /// <summary>
-        /// Map { header name } -> { header parsed value }
-        /// </summary>
-        /// <remarks>
-        /// Keys are stored in lower-case characters.
-        /// </remarks>
-        readonly Dictionary<string, object> ParsedHeaders;
-
-        /// <summary>
-        /// Proxy-Connection header value
-        /// </summary>
-        /// <remarks>
-        /// Proxy-Connection is not officially part of HTTP/1.1
-        /// </remarks>
-        public string[] ProxyConnection {
-            get {
-                return GetItem<string[]>("proxy-connection");
-            }
-            set {
-                SetItem("Proxy-Connection", value, HeaderType.Strings);
-            }
-        }
-
-        /// <summary>
-        /// Referer (sic) header value
-        /// </summary>
-        public string Referer {
-            get {
-                return GetItem<string>("referer");
-            }
-            set {
-                SetItem("Referer", value, HeaderType.String);
-            }
-        }
-
-        /// <summary>
-        /// Transfer-Encoding header value
-        /// </summary>
-        public string[] TransferEncoding {
-            get {
-                return GetItem<string[]>("transfer-encoding");
-            }
-            set {
-                SetItem("Transfer-Encoding", value, HeaderType.Strings);
-            }
-        }
-
-        /// <summary>
-        /// Instantiate empty HTTP headers
+        ///     Instantiate empty HTTP headers
         /// </summary>
         public HttpHeaders() {
             Headers = new Dictionary<string, string>();
@@ -169,7 +31,7 @@ namespace Qviipro {
         }
 
         /// <summary>
-        /// Read and parse HTTP headers from a connected socket
+        ///     Read and parse HTTP headers from a connected socket
         /// </summary>
         public HttpHeaders(SocketState source)
             : this() {
@@ -233,29 +95,170 @@ namespace Qviipro {
         }
 
         /// <summary>
-        /// Initialize a new instance with the provided set of
-        /// HTTP headers
+        ///     Initialize a new instance with the provided set of
+        ///     HTTP headers
         /// </summary>
         public HttpHeaders(Dictionary<string, string> headers) {
-            throw new NotImplementedException();
+            Headers = headers;
         }
 
-        T GetItem<T>(string header_name) {
-            System.Diagnostics.Debug.Assert(header_name.Equals(
+        /// <summary>
+        ///     Cache-Control header value
+        /// </summary>
+        public string CacheControl {
+            get {
+                return GetItem<string>("Cache-Control");
+            }
+            set {
+                SetItem("Cache-Control", value, HeaderType.String);
+            }
+        }
+
+        /// <summary>
+        ///     Connection header value
+        /// </summary>
+        public string[] Connection {
+            get {
+                return GetItem<string[]>("connection");
+            }
+            set {
+                SetItem("Connection", value, HeaderType.Strings);
+            }
+        }
+
+        /// <summary>
+        ///     Content-Encoding header value
+        /// </summary>
+        public string ContentEncoding {
+            get {
+                return GetItem<string>("content-encoding");
+            }
+            set {
+                SetItem("Content-Encoding", value, HeaderType.String);
+            }
+        }
+
+        /// <summary>
+        ///     Content-Length header value
+        /// </summary>
+        public uint? ContentLength {
+            get {
+                return GetItem<uint?>("content-length");
+            }
+            set {
+                SetItem("Content-Length", value, HeaderType.Uint);
+            }
+        }
+
+        /// <summary>
+        ///     Expires header value
+        /// </summary>
+        public string Expires {
+            get {
+                return GetItem<string>("Expires");
+            }
+            set {
+                SetItem("Expires", value, HeaderType.String);
+            }
+        }
+
+        /// <summary>
+        ///     Pragma header value
+        /// </summary>
+        public string Pragma {
+            get {
+                return GetItem<string>("Pragma");
+            }
+            set {
+                SetItem("Pragma", value, HeaderType.String);
+            }
+        }
+
+        /// <summary>
+        ///     Map { header name } -> { header string value }
+        /// </summary>
+        /// <remarks>
+        ///     Keys are stored in lower-case characters.
+        ///     Values have their spaces and trailing newlines trimmed.
+        /// </remarks>
+        public Dictionary<string, string> Headers { get; protected set; }
+
+        /// <summary>
+        ///     HTTP headers as received (newline markers may have been fixed)
+        /// </summary>
+        /// <remarks>
+        ///     If RemoveHeader has been called, then HeadersInOrder will be
+        ///     modified. In particular, the header ordering may change.
+        /// </remarks>
+        public string HeadersInOrder { get; protected set; }
+
+        /// <summary>
+        ///     Host header value
+        /// </summary>
+        public string Host {
+            get {
+                return GetItem<string>("host");
+            }
+            set {
+                SetItem("Host", value, HeaderType.String);
+            }
+        }
+
+        /// <summary>
+        ///     Proxy-Connection header value
+        /// </summary>
+        /// <remarks>
+        ///     Proxy-Connection is not officially part of HTTP/1.1
+        /// </remarks>
+        public string[] ProxyConnection {
+            get {
+                return GetItem<string[]>("proxy-connection");
+            }
+            set {
+                SetItem("Proxy-Connection", value, HeaderType.Strings);
+            }
+        }
+
+        /// <summary>
+        ///     Referer (sic) header value
+        /// </summary>
+        public string Referer {
+            get {
+                return GetItem<string>("referer");
+            }
+            set {
+                SetItem("Referer", value, HeaderType.String);
+            }
+        }
+
+        /// <summary>
+        ///     Transfer-Encoding header value
+        /// </summary>
+        public string[] TransferEncoding {
+            get {
+                return GetItem<string[]>("transfer-encoding");
+            }
+            set {
+                SetItem("Transfer-Encoding", value, HeaderType.Strings);
+            }
+        }
+
+        private T GetItem<T>(string header_name) {
+            Debug.Assert(header_name.Equals(
                 header_name.ToLower()));
-            object o = null;
+            object o;
             ParsedHeaders.TryGetValue(header_name, out o);
             return (T)o;
         }
 
         /// <summary>
-        /// Parse a HTTP header that is expected to contain a decimal value
+        ///     Parse a HTTP header that is expected to contain a decimal value
         /// </summary>
         /// <param name="HeaderName">
-        /// The header name, in lower-case
+        ///     The header name, in lower-case
         /// </param>
         protected uint? ParseIntValue(string HeaderName) {
-            System.Diagnostics.Debug.Assert(HeaderName.Equals(HeaderName.ToLower()));
+            Debug.Assert(HeaderName.Equals(HeaderName.ToLower()));
 
             try {
                 string value;
@@ -264,17 +267,19 @@ namespace Qviipro {
                 }
                 return UInt32.Parse(value);
             }
-            catch { return null; }
+            catch {
+                return null;
+            }
         }
 
         /// <summary>
-        /// Split a HTTP header value along the commas, and trim the spaces
+        ///     Split a HTTP header value along the commas, and trim the spaces
         /// </summary>
         /// <param name="HeaderName">
-        /// The header name, in lower-case
+        ///     The header name, in lower-case
         /// </param>
         protected string[] ParseMultipleStringValues(string HeaderName) {
-            System.Diagnostics.Debug.Assert(HeaderName.Equals(HeaderName.ToLower()));
+            Debug.Assert(HeaderName.Equals(HeaderName.ToLower()));
 
             try {
                 string value;
@@ -288,17 +293,19 @@ namespace Qviipro {
                 }
                 return values;
             }
-            catch { return null; }
+            catch {
+                return null;
+            }
         }
 
         /// <summary>
-        /// Retrieve a header value and trim the spaces
+        ///     Retrieve a header value and trim the spaces
         /// </summary>
         /// <param name="HeaderName">
-        /// The header name, in lower-case
+        ///     The header name, in lower-case
         /// </param>
         protected string ParseStringValue(string HeaderName) {
-            System.Diagnostics.Debug.Assert(HeaderName.Equals(HeaderName.ToLower()));
+            Debug.Assert(HeaderName.Equals(HeaderName.ToLower()));
 
             try {
                 string value;
@@ -307,15 +314,17 @@ namespace Qviipro {
                 }
                 return value.Trim();
             }
-            catch { return null; }
+            catch {
+                return null;
+            }
         }
 
-        bool IsHeaderValueCaseInsensitive(string HeaderName) {
+        private bool IsHeaderValueCaseInsensitive(string HeaderName) {
             // Note: some other headers may be case-insensitive, but
             // the ones listed here really have to be lowerized,
             // because TrotiNet assumes so.
 
-            System.Diagnostics.Debug.Assert(HeaderName.Equals(HeaderName.ToLower()));
+            Debug.Assert(HeaderName.Equals(HeaderName.ToLower()));
 
             return
                 HeaderName.Equals("connection") ||
@@ -331,7 +340,7 @@ namespace Qviipro {
             // want).
         }
 
-        void SetItem(string HeaderName, object value, HeaderType ht) {
+        private void SetItem(string HeaderName, object value, HeaderType ht) {
             string header_name = HeaderName.ToLower();
 
             // Does the key exist already?
@@ -359,7 +368,7 @@ namespace Qviipro {
                         s = String.Join(";", (string[])value);
                         break;
                     default:
-                        System.Diagnostics.Debug.Assert(false);
+                        Debug.Assert(false);
                         break;
                 }
                 Headers[header_name] = s;
@@ -374,7 +383,7 @@ namespace Qviipro {
                 var sb = new StringBuilder(512);
                 foreach (string item in items) {
                     var iSplit = item.IndexOf(':');
-                    System.Diagnostics.Debug.Assert(iSplit > 0);
+                    Debug.Assert(iSplit > 0);
                     var hn = item.Substring(0, iSplit).Trim().ToLower();
                     if (hn.Equals(header_name)) {
                         if (s == null) {
@@ -396,6 +405,10 @@ namespace Qviipro {
             }
         }
 
-        static readonly string[] CRLF_a = { "\r\n" };
+        private enum HeaderType {
+            Uint,
+            String,
+            Strings
+        }
     }
 }

@@ -1,6 +1,5 @@
 ﻿namespace Qviipro.Rules {
-   public class QviiConcreteRule : QviiRule {
-
+    public class QviiConcreteRule : QviiRule {
         public override bool IsAccept(string url) {
             return url == Pattern;
         }

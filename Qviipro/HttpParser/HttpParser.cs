@@ -8,119 +8,46 @@
  * Copyright © Aleksey S Nemiro, 2011
  */
 using System;
+using System.IO;
+using System.IO.Compression;
 using System.Text;
 using System.Text.RegularExpressions;
-using System.IO.Compression;
-using System.IO;
 
 namespace Qviipro.HttpParser {
     public class Parser {
         public enum MethodsList {
             /// <summary>
-            /// Запрос методом GET
+            ///     Запрос методом GET
             /// </summary>
             GET,
+
             /// <summary>
-            /// Запрос методом POST
+            ///     Запрос методом POST
             /// </summary>
             POST,
+
             /// <summary>
-            /// Для защищенных соединений
+            ///     Для защищенных соединений
             /// </summary>
             CONNECT
             // список можно продолжить
         }
 
-        private readonly MethodsList method = MethodsList.GET;
+        private readonly int headersTail = -1;
+
         private readonly string httpVersion = "1.1";
         private readonly ItemCollection items;
+        private readonly MethodsList method = MethodsList.GET;
         private readonly string path = String.Empty;
-        private byte[] source;
 
         private readonly int statusCode;
         private readonly string statusMessage = string.Empty;
-
-        private readonly int headersTail = -1;
-
-        /// <summary>
-        /// Тип запроса (при запросе)
-        /// </summary>
-        public MethodsList Method {
-            get {
-                return method;
-            }
-        }
-
-        /// <summary>
-        /// Путь (при запросе)
-        /// </summary>
-        public string Path {
-            get {
-                return path;
-            }
-        }
-
-        /// <summary>
-        /// Заголовки
-        /// </summary>
-        public ItemCollection Items {
-            get {
-                return items;
-            }
-        }
-
-        /// <summary>
-        /// Источник данных
-        /// </summary>
-        public byte[] Source {
-            get {
-                return source;
-            }
-        }
-
-        /// <summary>
-        /// Хост (домен, ip) - при запросе
-        /// </summary>
-        public string Host {
-            get {
-                if (!items.ContainsKey("Host"))
-                    return String.Empty;
-                return ((ItemHost)items["Host"]).Host;
-            }
-        }
-
-        /// <summary>
-        /// Номер порта, по умолчанию 80 - при запросе
-        /// </summary>
-        public int Port {
-            get {
-                if (!items.ContainsKey("Host"))
-                    return 80;
-                return ((ItemHost)items["Host"]).Port;
-            }
-        }
-
-        /// <summary>
-        /// Код состояния (при ответе)
-        /// </summary>
-        public int StatusCode {
-            get {
-                return statusCode;
-            }
-        }
-
-        /// <summary>
-        /// Сообщение сервера (при ответе)
-        /// </summary>
-        public string StatusMessage {
-            get {
-                return statusMessage;
-            }
-        }
+        private byte[] source;
 
         public Parser(byte[] source) {
-            if (source == null || source.Length <= 0)
+            if (source == null || source.Length <= 0) {
                 return;
+            }
             this.source = source;
 
             items = new ItemCollection();
@@ -158,7 +85,8 @@ namespace Qviipro.HttpParser {
 
             // выделяем заголовки (до первых двух переводов строк)
             headersTail = sourceString.IndexOf("\r\n\r\n");
-            if (headersTail != -1) { // хвост найден, отделяем заголовки
+            if (headersTail != -1) {
+                // хвост найден, отделяем заголовки
                 sourceString = sourceString.Substring(sourceString.IndexOf("\r\n") + 2, headersTail - sourceString.IndexOf("\r\n") - 2);
             }
 
@@ -175,7 +103,85 @@ namespace Qviipro.HttpParser {
         }
 
         /// <summary>
-        /// Возвращает оригинальные данные в виде строки
+        ///     Тип запроса (при запросе)
+        /// </summary>
+        public MethodsList Method {
+            get {
+                return method;
+            }
+        }
+
+        /// <summary>
+        ///     Путь (при запросе)
+        /// </summary>
+        public string Path {
+            get {
+                return path;
+            }
+        }
+
+        /// <summary>
+        ///     Заголовки
+        /// </summary>
+        public ItemCollection Items {
+            get {
+                return items;
+            }
+        }
+
+        /// <summary>
+        ///     Источник данных
+        /// </summary>
+        public byte[] Source {
+            get {
+                return source;
+            }
+        }
+
+        /// <summary>
+        ///     Хост (домен, ip) - при запросе
+        /// </summary>
+        public string Host {
+            get {
+                if (!items.ContainsKey("Host")) {
+                    return String.Empty;
+                }
+                return ((ItemHost)items["Host"]).Host;
+            }
+        }
+
+        /// <summary>
+        ///     Номер порта, по умолчанию 80 - при запросе
+        /// </summary>
+        public int Port {
+            get {
+                if (!items.ContainsKey("Host")) {
+                    return 80;
+                }
+                return ((ItemHost)items["Host"]).Port;
+            }
+        }
+
+        /// <summary>
+        ///     Код состояния (при ответе)
+        /// </summary>
+        public int StatusCode {
+            get {
+                return statusCode;
+            }
+        }
+
+        /// <summary>
+        ///     Сообщение сервера (при ответе)
+        /// </summary>
+        public string StatusMessage {
+            get {
+                return statusMessage;
+            }
+        }
+
+        /// <summary>
+        ///     Возвращает оригинальные данные в виде строки
         /// </summary>
         public string GetSourceAsString() {
             Encoding e = Encoding.UTF8;
@@ -185,28 +191,30 @@ namespace Qviipro.HttpParser {
                 try {
                     e = Encoding.GetEncoding(((ItemContentType)items["Content-Type"]).Charset);
                 }
-                catch { }
+                catch {}
             }
             return e.GetString(source);
         }
 
         /// <summary>
-        /// Возвращает заголовки в виде строки
+        ///     Возвращает заголовки в виде строки
         /// </summary>
         /// <returns></returns>
         public string GetHeadersAsString() {
-            if (items == null)
+            if (items == null) {
                 return String.Empty;
+            }
             return items.ToString();
         }
 
         /// <summary>
-        /// Фукнция возвразает содержимое в виде масссива байт
+        ///     Фукнция возвразает содержимое в виде масссива байт
         /// </summary>
         public byte[] GetBody() {
             // хвоста нет, значит тела тоже нет
-            if (headersTail == -1)
+            if (headersTail == -1) {
                 return null;
+            }
             // выделяем тело, начиная с конца хвоста
             var result = new byte[source.Length - headersTail - 4];
             Buffer.BlockCopy(source, headersTail + 4, result, 0, result.Length);
@@ -228,7 +236,7 @@ namespace Qviipro.HttpParser {
         }
 
         /// <summary>
-        /// Функция возвращает содержимое в виде строки
+        ///     Функция возвращает содержимое в виде строки
         /// </summary>
         public string GetBodyAsString() {
             Encoding e = Encoding.UTF8;
@@ -238,13 +246,13 @@ namespace Qviipro.HttpParser {
                 try {
                     e = Encoding.GetEncoding(((ItemContentType)items["Content-Type"]).Charset);
                 }
-                catch { }
+                catch {}
             }
             return e.GetString(GetBody());
         }
 
         /// <summary>
-        /// Вставляет текстовое содержимое, изменяет Content-Length
+        ///     Вставляет текстовое содержимое, изменяет Content-Length
         /// </summary>
         /// <param name="newBody">Новое содержимое, которое нужно вставить</param>
         public void SetStringBody(string newBody) {
@@ -257,8 +265,9 @@ namespace Qviipro.HttpParser {
             string result = String.Format("HTTP/{0} {1} {2}", httpVersion, statusCode, statusMessage);
             foreach (string k in items.Keys) {
                 ItemBase itm = items[k];
-                if (!String.IsNullOrEmpty(result))
+                if (!String.IsNullOrEmpty(result)) {
                     result += "\r\n";
+                }
                 if (k.ToLower() == "content-length") {
                     // информация о размере содержимого, меняем
                     result += String.Format("{0}: {1}", k, newBody.Length);
@@ -273,7 +282,7 @@ namespace Qviipro.HttpParser {
                         try {
                             e = Encoding.GetEncoding(((ItemContentType)items["Content-Type"]).Charset);
                         }
-                        catch { }
+                        catch {}
                     }
                 }
             }
@@ -284,6 +293,5 @@ namespace Qviipro.HttpParser {
             // переносим в источник
             source = e.GetBytes(result);
         }
-
     }
 }

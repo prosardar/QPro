@@ -18,11 +18,11 @@ namespace Qviipro {
     public class QviiCache {
         private readonly MemoryCache cache;
 
-        private readonly ConcurrentDictionary<string, Guid> ruleGuidLinkIndex = new ConcurrentDictionary<string, Guid>();
         private readonly ConcurrentDictionary<Guid, string> responseGuidLinkIndex = new ConcurrentDictionary<Guid, string>();
-        private readonly ConcurrentDictionary<string, string> urlLinkIndex = new ConcurrentDictionary<string, string>();
+        private readonly ConcurrentDictionary<string, Guid> ruleGuidLinkIndex = new ConcurrentDictionary<string, Guid>();
 
         private readonly object sync = new object();
+        private readonly ConcurrentDictionary<string, string> urlLinkIndex = new ConcurrentDictionary<string, string>();
 
         public QviiCache() {
             cache = new MemoryCache("QviiCache");

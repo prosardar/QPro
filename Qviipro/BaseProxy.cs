@@ -3,17 +3,13 @@ using System.Net;
 
 namespace Qviipro {
     /// <summary>
-    /// 
     /// </summary>
     public class BaseProxy {
-        readonly QviiServer qviiServer;
-        readonly ProxyChanger proxyChanger;
-        IPEndPoint hostEndPoint;
-
-        protected bool IsShuttingDown { get; private set; }
+        private readonly ProxyChanger proxyChanger;
+        private readonly QviiServer qviiServer;
+        private IPEndPoint hostEndPoint;
 
         /// <summary>
-        /// 
         /// </summary>
         public BaseProxy() {
             proxyChanger = new ProxyChanger();
@@ -23,23 +19,23 @@ namespace Qviipro {
                 OnReceiveResponse = OnReceiveResponse
             };
         }
-        
+
+        protected bool IsShuttingDown { get; private set; }
+
         /// <summary>
-        /// 
         /// </summary>
         protected virtual void OnReceiveResponse(TransferItem item) {
             throw new NotImplementedException();
         }
 
         /// <summary>
-        /// 
         /// </summary>
         protected virtual void OnReceiveRequest(TransferItem item) {
             throw new NotImplementedException();
         }
 
         /// <summary>
-        /// Запускает прослушивание
+        ///     Запускает прослушивание
         /// </summary>
         public void Start() {
             proxyChanger.SetNewProxy(hostEndPoint);
@@ -47,7 +43,7 @@ namespace Qviipro {
         }
 
         /// <summary>
-        /// Останавливает прослушивание
+        ///     Останавливает прослушивание
         /// </summary>
         public void Stop() {
             proxyChanger.ResetProxy();
@@ -56,7 +52,7 @@ namespace Qviipro {
 
         #region Initializing
         /// <summary>
-        /// Инициализирует прокси-сервер с заданным портом для прослушивания
+        ///     Инициализирует прокси-сервер с заданным портом для прослушивания
         /// </summary>
         /// <param name="port">Номер порта для прослушивания</param>
         public void Initialize(int port) {
@@ -64,7 +60,7 @@ namespace Qviipro {
         }
 
         /// <summary>
-        /// Инициализирует прокси-сервер с заданным адресом и портом для прослушивания
+        ///     Инициализирует прокси-сервер с заданным адресом и портом для прослушивания
         /// </summary>
         /// <param name="ip">IP адрес</param>
         /// <param name="port">Номер порта для прослушивания</param>
@@ -74,7 +70,7 @@ namespace Qviipro {
         }
 
         /// <summary>
-        /// Инициализирует прокси-сервер с заданным адресом и портом для прослушивания
+        ///     Инициализирует прокси-сервер с заданным адресом и портом для прослушивания
         /// </summary>
         /// <param name="ip">IP адрес</param>
         /// <param name="port">Номер порта для прослушивания</param>
@@ -83,7 +79,7 @@ namespace Qviipro {
         }
 
         /// <summary>
-        /// Инициализирует прокси-сервер с заданной конечной точкой
+        ///     Инициализирует прокси-сервер с заданной конечной точкой
         /// </summary>
         /// <param name="endPoint">Конечная точка для прослушивания</param>
         public void Initialize(IPEndPoint endPoint) {
@@ -91,11 +87,8 @@ namespace Qviipro {
         }
 
         /// <summary>
-        /// 
         /// </summary>
-        public void Uninitialize() {
-
-        }
+        public void Uninitialize() {}
         #endregion
     }
 }

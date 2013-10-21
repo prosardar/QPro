@@ -5,39 +5,32 @@ using Microsoft.Win32;
 
 namespace Qviipro {
     /// <summary>
-    /// Представляет класс для изменения на лету прокси-сервера для всей системы
+    ///     Представляет класс для изменения на лету прокси-сервера для всей системы
     /// </summary>
-    class ProxyChanger {
-        const int INTERNET_OPTION_SETTINGS_CHANGED = 39;
-        const int INTERNET_OPTION_REFRESH = 37;
+    internal class ProxyChanger {
+        private const int INTERNET_OPTION_SETTINGS_CHANGED = 39;
+        private const int INTERNET_OPTION_REFRESH = 37;
 
-        enum SendMessageTimeoutFlags : uint {
-            SMTO_NORMAL = 0x0000,
-            SMTO_BLOCK = 0x0001,
-            SMTO_ABORTIFHUNG = 0x0002,
-            SMTO_NOTIMEOUTIFNOTHUNG = 0x0008
-        }
+        private static readonly IntPtr HwndBroadcast = new IntPtr(0xffff);
+        private static readonly IntPtr WmSettingchange = new IntPtr(0x001A);
 
-        static readonly IntPtr HwndBroadcast = new IntPtr(0xffff);
-        static readonly IntPtr WmSettingchange = new IntPtr(0x001A);
+        private bool oldEnabled;
+        private IPEndPoint oldEndPoint;
 
         [DllImport("wininet.dll", EntryPoint = "InternetSetOptionA",
-                 CharSet = CharSet.Ansi, SetLastError = true, PreserveSig = true)]
-        static extern bool InternetSetOption(IntPtr hInternet, int dwOption, IntPtr lpBuffer, int dwBufferLength);
+            CharSet = CharSet.Ansi, SetLastError = true, PreserveSig = true)]
+        private static extern bool InternetSetOption(IntPtr hInternet, int dwOption, IntPtr lpBuffer, int dwBufferLength);
 
         [DllImport("user32.dll", SetLastError = true, CharSet = CharSet.Auto)]
-        static extern IntPtr SendMessageTimeout(IntPtr hWnd,
-                                                uint Msg,
-                                                UIntPtr wParam,
-                                                UIntPtr lParam,
-                                                SendMessageTimeoutFlags fuFlags,
-                                                uint uTimeout,
-                                                out UIntPtr lpdwResult);
+        private static extern IntPtr SendMessageTimeout(IntPtr hWnd,
+                                                        uint Msg,
+                                                        UIntPtr wParam,
+                                                        UIntPtr lParam,
+                                                        SendMessageTimeoutFlags fuFlags,
+                                                        uint uTimeout,
+                                                        out UIntPtr lpdwResult);
 
-        bool oldEnabled;
-        IPEndPoint oldEndPoint;
-
-        void ChangeIpAddressInRegistry(bool enabledProxy, IPEndPoint endPoint) {
+        private void ChangeIpAddressInRegistry(bool enabledProxy, IPEndPoint endPoint) {
             const string internetSettingsPath = @"Software\Microsoft\Windows\CurrentVersion\Internet Settings";
             using (RegistryKey regKey = Registry.CurrentUser.CreateSubKey(internetSettingsPath)) {
                 if (regKey == null) {
@@ -61,13 +54,13 @@ namespace Qviipro {
 
             UIntPtr result;
             SendMessageTimeout(HwndBroadcast, (uint)WmSettingchange, UIntPtr.Zero, UIntPtr.Zero,
-                SendMessageTimeoutFlags.SMTO_NORMAL, 1000, out result);
+                               SendMessageTimeoutFlags.SMTO_NORMAL, 1000, out result);
         }
 
         /// <summary>
-        /// Сохраняет текущие настройки прокси-сервера
+        ///     Сохраняет текущие настройки прокси-сервера
         /// </summary>
-        void SaveProxySettings() {
+        private void SaveProxySettings() {
             const string internetSettingsPath = @"Software\Microsoft\Windows\CurrentVersion\Internet Settings";
             using (RegistryKey regKey = Registry.CurrentUser.CreateSubKey(internetSettingsPath)) {
                 if (regKey == null) {
@@ -82,8 +75,8 @@ namespace Qviipro {
                     var d = proxyServerString.Split(':');
                     IPAddress ipAddress = null;
                     ipAddress = d[0] == "localhost"
-                        ? IPAddress.Loopback
-                        : IPAddress.Parse(d[0]);
+                                    ? IPAddress.Loopback
+                                    : IPAddress.Parse(d[0]);
                     var port = int.Parse(d[1]);
                     oldEndPoint = new IPEndPoint(ipAddress, port);
                 } else {
@@ -95,7 +88,7 @@ namespace Qviipro {
         }
 
         /// <summary>
-        /// Устанавливает новый прокси-сервер
+        ///     Устанавливает новый прокси-сервер
         /// </summary>
         /// <param name="endPoint">адрес конечной точки для прокси-сервера</param>
         public void SetNewProxy(IPEndPoint endPoint) {
@@ -105,11 +98,18 @@ namespace Qviipro {
         }
 
         /// <summary>
-        /// Восстанавливает исходные настройки для прокси-сервера
+        ///     Восстанавливает исходные настройки для прокси-сервера
         /// </summary>
         public void ResetProxy() {
             ChangeIpAddressInRegistry(oldEnabled, oldEndPoint);
             SetOptions();
+        }
+
+        private enum SendMessageTimeoutFlags : uint {
+            SMTO_NORMAL = 0x0000,
+            SMTO_BLOCK = 0x0001,
+            SMTO_ABORTIFHUNG = 0x0002,
+            SMTO_NOTIMEOUTIFNOTHUNG = 0x0008
         }
     }
 }

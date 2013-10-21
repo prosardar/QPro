@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
 using System.Net;
@@ -8,88 +9,88 @@ using System.Text;
 namespace Qviipro {
     public class QviiTransfer {
         /// <summary>
-        /// Port to which <c>BrowserSocket</c> is currently connected
-        /// </summary>
-        protected int DestinationPort;
-
-        /// <summary>
-        /// Name of the host to which <c>BrowserSocket</c> is currently
-        /// connected
-        /// </summary>
-        protected string DestinationHostName;
-
-        /// <summary>
-        /// Socket dedicated to the (client) browser-proxy communication
+        ///     Socket dedicated to the (client) browser-proxy communication
         /// </summary>
         protected SocketState BrowserSocket;
 
         /// <summary>
-        /// Socket dedicated to the proxy-server (remote) communication
+        ///     Name of the host to which <c>BrowserSocket</c> is currently
+        ///     connected
         /// </summary>
-        protected SocketState RemoteSocket;
+        protected string DestinationHostName;
 
         /// <summary>
-        /// The request line of the HTTP request currently being handled
+        ///     Port to which <c>BrowserSocket</c> is currently connected
         /// </summary>
-        protected HttpRequestLine RequestLine;
+        protected int DestinationPort;
 
         /// <summary>
-        /// The request headers of the HTTP request currently being handled
-        /// </summary>
-        protected HttpHeaders RequestHeaders;
-
-        /// <summary>
-        /// The response status line of the HTTP response received
-        /// </summary>
-        protected HttpStatusLine ResponseStatusLine;
-
-        /// <summary>
-        /// The response header line of the HTTP response received
-        /// </summary>
-        protected HttpHeaders ResponseHeaders;
-
-        /// <summary>
-        /// Set to a proxy host name if our proxy is not connecting to
-        /// the internet, but to another proxy instead
-        /// </summary>
-        protected string RelayHttpProxyHost;
-
-        /// <summary>
-        /// Set to a proxy bypass specification if our proxy is not connecting
-        /// to the internet, but to another proxy instead
+        ///     Called when RequestLine and RequestHeaders are set
         /// </summary>
         /// <remarks>
-        /// XXX Bypass not implemented
-        /// </remarks>
-        protected string RelayHttpProxyOverride;
-
-        /// <summary>
-        /// Set to a proxy port if our proxy is not connecting to
-        /// the internet, but to another proxy instead
-        /// </summary>
-        protected int RelayHttpProxyPort;
-
-        /// <summary>
-        /// Request processing pipeline state
-        /// </summary>
-        /// <seealso cref="RequestProcessingState"/>
-        protected RequestProcessingState State;
-
-        /// <summary>
-        /// Called when RequestLine and RequestHeaders are set
-        /// </summary>
-        /// <remarks>
-        /// May be used to override State.NextStep
+        ///     May be used to override State.NextStep
         /// </remarks>
         public Action<TransferItem> OnReceiveRequest;
 
         /// <summary>
-        /// Called when ResponseStatusLine and ResponseHeaders are set
+        ///     Called when ResponseStatusLine and ResponseHeaders are set
         /// </summary>
         /// <remarks>
-        /// May be used to override State.NextStep
+        ///     May be used to override State.NextStep
         /// </remarks>
         public Action<TransferItem> OnReceiveResponse;
+
+        /// <summary>
+        ///     Set to a proxy host name if our proxy is not connecting to
+        ///     the internet, but to another proxy instead
+        /// </summary>
+        protected string RelayHttpProxyHost;
+
+        /// <summary>
+        ///     Set to a proxy bypass specification if our proxy is not connecting
+        ///     to the internet, but to another proxy instead
+        /// </summary>
+        /// <remarks>
+        ///     XXX Bypass not implemented
+        /// </remarks>
+        protected string RelayHttpProxyOverride;
+
+        /// <summary>
+        ///     Set to a proxy port if our proxy is not connecting to
+        ///     the internet, but to another proxy instead
+        /// </summary>
+        protected int RelayHttpProxyPort;
+
+        /// <summary>
+        ///     Socket dedicated to the proxy-server (remote) communication
+        /// </summary>
+        protected SocketState RemoteSocket;
+
+        /// <summary>
+        ///     The request headers of the HTTP request currently being handled
+        /// </summary>
+        protected HttpHeaders RequestHeaders;
+
+        /// <summary>
+        ///     The request line of the HTTP request currently being handled
+        /// </summary>
+        protected HttpRequestLine RequestLine;
+
+        /// <summary>
+        ///     The response header line of the HTTP response received
+        /// </summary>
+        protected HttpHeaders ResponseHeaders;
+
+        /// <summary>
+        ///     The response status line of the HTTP response received
+        /// </summary>
+        protected HttpStatusLine ResponseStatusLine;
+
+        /// <summary>
+        ///     Request processing pipeline state
+        /// </summary>
+        /// <seealso cref="RequestProcessingState" />
+        protected RequestProcessingState State;
 
         public QviiTransfer(SocketState state) {
             BrowserSocket = state;
@@ -117,7 +118,7 @@ namespace Qviipro {
         }
 
         /// <summary>
-        /// Interpret a message with respect to its content encoding
+        ///     Interpret a message with respect to its content encoding
         /// </summary>
         protected Stream GetResponseMessageStream(byte[] msg) {
             Stream inS = new MemoryStream(msg);
@@ -125,7 +126,7 @@ namespace Qviipro {
         }
 
         /// <summary>
-        /// Interpret a message with respect to its content encoding
+        ///     Interpret a message with respect to its content encoding
         /// </summary>
         protected Stream GetResponseMessageStream(Stream inStream) {
             Stream outStream = null;
@@ -151,7 +152,7 @@ namespace Qviipro {
         }
 
         /// <summary>
-        /// Compress a byte array based on the content encoding header
+        ///     Compress a byte array based on the content encoding header
         /// </summary>
         /// <param name="output">The content to be compressed</param>
         /// <returns>The compressed content</returns>
@@ -185,7 +186,7 @@ namespace Qviipro {
         }
 
         /// <summary>
-        /// Get an encoded byte array for a given string
+        ///     Get an encoded byte array for a given string
         /// </summary>
         public byte[] EncodeStringResponse(string s, Encoding encoding) {
             byte[] output = encoding.GetBytes(s);
@@ -193,18 +194,18 @@ namespace Qviipro {
         }
 
         /// <summary>
-        /// If necessary, connect the remote <c>RemoteSocket</c> socket
-        /// to the given host and port
+        ///     If necessary, connect the remote <c>RemoteSocket</c> socket
+        ///     to the given host and port
         /// </summary>
         /// <param name="hostname">Remote host name</param>
         /// <param name="port">Remote port</param>
         /// <remarks>
-        /// If RemoteSocket is already connected to the right host and port,
-        /// the socket is reused as is.
+        ///     If RemoteSocket is already connected to the right host and port,
+        ///     the socket is reused as is.
         /// </remarks>
         protected void Connect(string hostname, int port) {
-            System.Diagnostics.Debug.Assert(!String.IsNullOrEmpty(hostname));
-            System.Diagnostics.Debug.Assert(port > 0);
+            Debug.Assert(!String.IsNullOrEmpty(hostname));
+            Debug.Assert(port > 0);
 
             if (DestinationHostName != null &&
                 DestinationHostName.Equals(hostname) &&
@@ -254,9 +255,9 @@ namespace Qviipro {
         }
 
         /// <summary>
-        /// Pipeline step: read the HTTP request from the client, schedule
-        /// the next step to be <c>SendRequest</c>, and call
-        /// <c>OnReceiveRequest</c>
+        ///     Pipeline step: read the HTTP request from the client, schedule
+        ///     the next step to be <c>SendRequest</c>, and call
+        ///     <c>OnReceiveRequest</c>
         /// </summary>
         protected virtual void ReadRequest() {
             try {
@@ -322,17 +323,16 @@ namespace Qviipro {
                 if (RequestHeaders.TransferEncoding != null) {
                     State.RequestHasMessage = true;
                     State.RequestMessageChunked = Array.IndexOf(RequestHeaders.TransferEncoding, "chunked") >= 0;
-                    System.Diagnostics.Debug.Assert(State.RequestMessageChunked);
-                } else
-                    if (RequestHeaders.ContentLength != null) {
-                        State.RequestMessageLength = (uint)RequestHeaders.ContentLength;
+                    Debug.Assert(State.RequestMessageChunked);
+                } else if (RequestHeaders.ContentLength != null) {
+                    State.RequestMessageLength = (uint)RequestHeaders.ContentLength;
 
-                        // Note: HTTP 1.0 wants "Content-Length: 0" when there
-                        // is no entity body. (RFC 1945, section 7.2)
-                        if (State.RequestMessageLength > 0) {
-                            State.RequestHasMessage = true;
-                        }
+                    // Note: HTTP 1.0 wants "Content-Length: 0" when there
+                    // is no entity body. (RFC 1945, section 7.2)
+                    if (State.RequestMessageLength > 0) {
+                        State.RequestHasMessage = true;
                     }
+                }
             }
             // Step 3)
             State.UseDefaultPersistBrowserSocket = true;
@@ -358,12 +358,11 @@ namespace Qviipro {
 
             // Note: we do not remove fields mentioned in the
             //  'Connection' header (the specs say we should).
-
         }
 
         /// <summary>
-        /// Pipeline step: tunnel the request from the client to the remove
-        /// server, and schedule the next step to be <c>ReadResponse</c>
+        ///     Pipeline step: tunnel the request from the client to the remove
+        ///     server, and schedule the next step to be <c>ReadResponse</c>
         /// </summary>
         protected virtual void SendRequest() {
             // Transmit the request to the server
@@ -374,7 +373,7 @@ namespace Qviipro {
                 if (State.RequestMessageChunked) {
                     BrowserSocket.TunnelChunkedDataTo(RemoteSocket);
                 } else {
-                    System.Diagnostics.Debug.Assert(State.RequestMessageLength > 0);
+                    Debug.Assert(State.RequestMessageLength > 0);
                     BrowserSocket.TunnelDataTo(TunnelRemoteSocket, State.RequestMessageLength);
                 }
             }
@@ -383,9 +382,9 @@ namespace Qviipro {
         }
 
         /// <summary>
-        /// Pipeline step: read the HTTP response from the local client,
-        /// schedule the next step to be <c>SendResponse</c>, and call
-        /// <c>OnReceiveResponse</c>
+        ///     Pipeline step: read the HTTP response from the local client,
+        ///     schedule the next step to be <c>SendResponse</c>, and call
+        ///     <c>OnReceiveResponse</c>
         /// </summary>
         protected virtual void ReadResponse() {
             // Wait until we receive the response, then parse its header
@@ -394,7 +393,7 @@ namespace Qviipro {
 
             // Get PersistConnectionRemoteSocket (RFC 2616, section 14.10)
             bool bUseDefaultPersistPS = true;
-            if (ResponseHeaders.Connection != null)
+            if (ResponseHeaders.Connection != null) {
                 foreach (var item in ResponseHeaders.Connection) {
                     if (item.Equals("close")) {
                         State.PersistConnectionRemoteSocket = false;
@@ -407,9 +406,11 @@ namespace Qviipro {
                         break;
                     }
                 }
-            if (bUseDefaultPersistPS)
+            }
+            if (bUseDefaultPersistPS) {
                 State.PersistConnectionRemoteSocket =
                     (ResponseStatusLine.ProtocolVersion.Equals("1.0") == false);
+            }
 
             if (State.PersistConnectionRemoteSocket) {
                 RemoteSocket.KeepAlive = true;
@@ -430,12 +431,12 @@ namespace Qviipro {
         }
 
         /// <summary>
-        /// Pipeline: tunnel the HTTP response from the remote server to the
-        /// local client, and end the request processing
+        ///     Pipeline: tunnel the HTTP response from the remote server to the
+        ///     local client, and end the request processing
         /// </summary>
         protected virtual void SendResponse() {
             if ((ResponseHeaders.TransferEncoding == null &&
-                  ResponseHeaders.ContentLength == null) == false) {
+                 ResponseHeaders.ContentLength == null) == false) {
                 // Transmit the response header to the client
                 SendResponseStatusAndHeaders();
             }
@@ -453,34 +454,33 @@ namespace Qviipro {
             uint responseMessageLength = 0;
             if (ResponseHeaders.TransferEncoding != null) {
                 responseMessageChunked = Array.IndexOf(ResponseHeaders.TransferEncoding, "chunked") >= 0;
-                System.Diagnostics.Debug.Assert(responseMessageChunked);
-            } else
-                if (ResponseHeaders.ContentLength != null) {
-                    responseMessageLength = (uint)ResponseHeaders.ContentLength;
-                    if (responseMessageLength == 0) {
-                        goto no_message_body;
-                    }
-                } else {
-                    // We really should have been given a response
-                    // length. It appears that some popular websites
-                    // send small files without a transfer-encoding
-                    // or length.
-
-                    // It seems that all of the browsers handle this
-                    // case so we need to as well.
-
-                    var buffer = new byte[512];
-                    RemoteSocket.TunnelDataTo(ref buffer);
-
-                    // Transmit the response header to the client
-                    ResponseHeaders.ContentLength = (uint)buffer.Length;
-                    ResponseStatusLine.SendTo(BrowserSocket);
-                    ResponseHeaders.SendTo(BrowserSocket);
-
-                    BrowserSocket.TunnelDataTo(TunnelBrowserSocket, buffer);
-                    State.NextStep = null;
-                    return;
+                Debug.Assert(responseMessageChunked);
+            } else if (ResponseHeaders.ContentLength != null) {
+                responseMessageLength = (uint)ResponseHeaders.ContentLength;
+                if (responseMessageLength == 0) {
+                    goto no_message_body;
                 }
+            } else {
+                // We really should have been given a response
+                // length. It appears that some popular websites
+                // send small files without a transfer-encoding
+                // or length.
+
+                // It seems that all of the browsers handle this
+                // case so we need to as well.
+
+                var buffer = new byte[512];
+                RemoteSocket.TunnelDataTo(ref buffer);
+
+                // Transmit the response header to the client
+                ResponseHeaders.ContentLength = (uint)buffer.Length;
+                ResponseStatusLine.SendTo(BrowserSocket);
+                ResponseHeaders.SendTo(BrowserSocket);
+
+                BrowserSocket.TunnelDataTo(TunnelBrowserSocket, buffer);
+                State.NextStep = null;
+                return;
+            }
 
             if (State.OnResponseMessagePacket != null) {
                 if (State.PersistConnectionRemoteSocket == false) {
@@ -507,7 +507,7 @@ namespace Qviipro {
                 }
             }
 
-        no_message_body:
+            no_message_body:
 
             if (State.PersistConnectionRemoteSocket == false && RemoteSocket != null) {
                 RemoteSocket.CloseSocket();
@@ -518,8 +518,8 @@ namespace Qviipro {
         }
 
         /// <summary>
-        /// Send the response status line and headers from the proxy to
-        /// the client
+        ///     Send the response status line and headers from the proxy to
+        ///     the client
         /// </summary>
         protected void SendResponseStatusAndHeaders() {
             ResponseStatusLine.SendTo(BrowserSocket);
@@ -527,7 +527,7 @@ namespace Qviipro {
         }
 
         /// <summary>
-        /// Message packet handler for tunneling data from RemoteSocket to BrowserSocket
+        ///     Message packet handler for tunneling data from RemoteSocket to BrowserSocket
         /// </summary>
         protected void TunnelBrowserSocket(byte[] msg, uint position, uint to_send) {
             if (to_send == 0) {
@@ -539,7 +539,7 @@ namespace Qviipro {
         }
 
         /// <summary>
-        /// Message packet handler for tunneling data from BrowserSocket to RemoteSocket
+        ///     Message packet handler for tunneling data from BrowserSocket to RemoteSocket
         /// </summary>
         protected void TunnelRemoteSocket(byte[] msg, uint position, uint to_send) {
             if (to_send == 0) {
@@ -551,19 +551,20 @@ namespace Qviipro {
         }
 
         /// <summary>
-        /// Extract the host and port to use from either the HTTP request
-        /// line, or the HTTP headers; update the request line to remove
-        /// the hostname and port
+        ///     Extract the host and port to use from either the HTTP request
+        ///     line, or the HTTP headers; update the request line to remove
+        ///     the hostname and port
         /// </summary>
         /// <param name="hrl">
-        /// The HTTP request line; the URI will be updated to remove the
-        /// host name and port number</param>
+        ///     The HTTP request line; the URI will be updated to remove the
+        ///     host name and port number
+        /// </param>
         /// <param name="hh_rq">The HTTP request headers</param>
         /// <param name="port">
-        /// When this method returns, contains the request port
+        ///     When this method returns, contains the request port
         /// </param>
         /// <remarks>
-        /// May modify the URI of <c>hrl</c>
+        ///     May modify the URI of <c>hrl</c>
         /// </remarks>
         protected string ParseDestinationHostAndPort(HttpRequestLine hrl, HttpHeaders hh_rq, out int port) {
             string host = null;
@@ -572,7 +573,7 @@ namespace Qviipro {
 
             bool bIsHTTP1_0 = hrl.ProtocolVersion.Equals("1.0");
             if (hrl.URI.Equals("*")) {
-                System.Diagnostics.Debug.Assert(!bIsHTTP1_0);
+                Debug.Assert(!bIsHTTP1_0);
                 goto hostname_from_header;
             }
 
@@ -605,7 +606,7 @@ namespace Qviipro {
             if (slash == -1) {
                 // case 1
                 authority = hrl.URI;
-                System.Diagnostics.Debug.Assert(bIsConnect);
+                Debug.Assert(bIsConnect);
             } else {
                 if (slash > 0) {
                     // Strict inequality
@@ -620,26 +621,25 @@ namespace Qviipro {
                 // c) hostname:port
 
                 int c = authority.IndexOf(':');
-                if (c < 0)
+                if (c < 0) {
                     // case a)
                     host = authority;
-                else
-                    if (c == authority.Length - 1)
-                        // case b)
-                        host = authority.TrimEnd('/');
-                    else {
-                        // case c)
-                        host = authority.Substring(0, c);
-                        port = int.Parse(authority.Substring(c + 1));
-                    }
+                } else if (c == authority.Length - 1) {
+                    // case b)
+                    host = authority.TrimEnd('/');
+                } else {
+                    // case c)
+                    host = authority.Substring(0, c);
+                    port = int.Parse(authority.Substring(c + 1));
+                }
 
                 prefix += authority.Length;
             }
 
             if (host != null) {
 #if false
-                // XXX Not sure whether this can happen (without doing ad
-                // replacement) or if we want to prevent it
+    // XXX Not sure whether this can happen (without doing ad
+    // replacement) or if we want to prevent it
                 if (hh_rq.Host != null)
                 {
                     // Does hh_rq.Host and host match? (disregarding
@@ -658,24 +658,25 @@ namespace Qviipro {
                 // unchanged. (RFC 2616, section 5.1.2)
                 if (RelayHttpProxyHost == null) {
                     hrl.URI = hrl.URI.Substring(prefix);
-
                 }
 
                 return host;
             }
 
-        hostname_from_header:
+            hostname_from_header:
             host = hh_rq.Host;
-            if (host == null)
+            if (host == null) {
                 throw new HttpProtocolBroken("No host specified");
+            }
             int cp = host.IndexOf(':');
-            if (cp < 0) { /* nothing */ } else
-                if (cp == host.Length - 1)
-                    host = host.TrimEnd('/');
-                else {
-                    host = host.Substring(0, cp);
-                    port = int.Parse(host.Substring(cp + 1));
-                }
+            if (cp < 0) {
+                /* nothing */
+            } else if (cp == host.Length - 1) {
+                host = host.TrimEnd('/');
+            } else {
+                host = host.Substring(0, cp);
+                port = int.Parse(host.Substring(cp + 1));
+            }
             return host;
         }
 
@@ -694,7 +695,7 @@ namespace Qviipro {
         }
 
         /// <summary>
-        /// Pipeline step: close the connections and stop
+        ///     Pipeline step: close the connections and stop
         /// </summary>
         protected void AbortRequest() {
             if (RemoteSocket != null) {
