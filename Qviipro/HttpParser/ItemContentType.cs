@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Text.RegularExpressions;
 
-namespace Qviipro.HttpParser {
+namespace QPro.HttpParser {
     public class ItemContentType : ItemBase {
         private readonly string charset = "utf8";
         private readonly string value = "text/plain";

@@ -1,9 +1,10 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Net.Sockets;
 using System.Text;
 
-namespace Qviipro {
+namespace QPro {
     /// <summary>
     ///     Communication state between two hosts
     /// </summary>
@@ -144,6 +145,8 @@ namespace Qviipro {
 
         private readonly StringBuilder sb;
         private uint BufferPosition;
+
+        public List<byte[]> Response;
 
         /// <summary>
         ///     True if ReadAsciiLine may have loaded bytes in the buffer
@@ -297,8 +300,14 @@ namespace Qviipro {
                 if (AvailableData == 0) {
                     ReadRaw();
                 }
+                Response = new List<byte[]>();
+                var i = 0;
                 while (AvailableData > 0) {
                     mph(SocketBuffer, BufferPosition, AvailableData);
+                    var buffer = new byte[AvailableData];
+                    Array.Copy(SocketBuffer, (int)BufferPosition, buffer, 0, AvailableData);
+                    Response.Add(buffer);
+                    i++;
                     total_sent += AvailableData;
                     ReadRaw();
                 }
@@ -317,10 +326,10 @@ namespace Qviipro {
         /// <returns>The number of bytes sent</returns>
         public uint TunnelDataTo(SocketState dest, uint nb_bytes) {
             return TunnelDataTo((b, o, s) => {
-                                    if (dest.WriteBinary(b, o, s) < s) {
-                                        throw new IoBroken();
-                                    }
-                                }, nb_bytes);
+                if (dest.WriteBinary(b, o, s) < s) {
+                    throw new IoBroken();
+                }
+            }, nb_bytes);
         }
 
         /// <summary>
@@ -330,6 +339,7 @@ namespace Qviipro {
         /// <returns>The number of bytes sent</returns>
         public uint TunnelDataTo(MessagePacketHandler mph, uint nb_bytes) {
             uint total_sent = 0;
+            Response = new List<byte[]>();
             while (nb_bytes > 0) {
                 if (AvailableData == 0) {
                     if (ReadRaw() == 0) {
@@ -342,6 +352,9 @@ namespace Qviipro {
                     to_send = nb_bytes;
                 }
                 mph(SocketBuffer, BufferPosition, to_send);
+                var buf = new byte[to_send];
+                Array.Copy(SocketBuffer, BufferPosition, buf, 0, to_send);
+                Response.Add(buf);
                 total_sent += to_send;
                 nb_bytes -= to_send;
                 AvailableData -= to_send;
@@ -418,8 +431,7 @@ namespace Qviipro {
                     to_send = byte_count;
                 }
 
-                Buffer.BlockCopy(SocketBuffer, (int)BufferPosition, buffer,
-                                 (int)total_sent, (int)to_send);
+                Buffer.BlockCopy(SocketBuffer, (int)BufferPosition, buffer, (int)total_sent, (int)to_send);
 
                 total_sent += to_send;
                 byte_count -= to_send;
@@ -448,8 +460,7 @@ namespace Qviipro {
         }
 
         /// <summary>
-        ///     Write the first <c>nb_bytes</c> of <c>b</c> to the
-        ///     socket
+        ///     Write the first <c>nb_bytes</c> of <c>b</c> to the socket
         /// </summary>
         public uint WriteBinary(byte[] b, uint nb_bytes) {
             return WriteBinary(b, 0, nb_bytes);
@@ -461,7 +472,6 @@ namespace Qviipro {
         /// </summary>
         public uint WriteBinary(byte[] b, uint offset, uint nb_bytes) {
             LowLevelSocket.NoDelay = true;
-            var str = Encoding.ASCII.GetString(b, (int)offset, (int)nb_bytes);
             int r = LowLevelSocket.Send(b, (int)offset, (int)nb_bytes, SocketFlags.None);
             if (r < 0) {
                 r = 0;
@@ -527,11 +537,11 @@ namespace Qviipro {
         ///     transmitted (but otherwise ignored).
         /// </remarks>
         public void TunnelChunkedDataTo(SocketState dest) {
-            TunnelChunkedDataTo(dest, (b, o, s) => {
-                                          if (dest.WriteBinary(b, o, s) < s) {
-                                              throw new IoBroken();
-                                          }
-                                      });
+            TunnelChunkedDataTo(dest, (buffer, offset, size) => {
+                if (dest.WriteBinary(buffer, offset, size) < size) {
+                    throw new IoBroken();
+                }
+            });
         }
 
         /// <summary>
@@ -595,11 +605,5 @@ namespace Qviipro {
             } while (line.Length != 0);
         }
         #endregion
-
-        public byte[] CopyBuffer() {
-            var newBuffer = new byte[AvailableData];
-            Buffer.BlockCopy(SocketBuffer, (int)BufferPosition, newBuffer, 0, newBuffer.Length);
-            return newBuffer;
-        }
     }
 }

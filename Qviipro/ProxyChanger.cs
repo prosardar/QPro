@@ -3,7 +3,7 @@ using System.Net;
 using System.Runtime.InteropServices;
 using Microsoft.Win32;
 
-namespace Qviipro {
+namespace QPro {
     /// <summary>
     ///     Представляет класс для изменения на лету прокси-сервера для всей системы
     /// </summary>

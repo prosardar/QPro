@@ -1,8 +1,6 @@
 ﻿using System;
-using System.Net;
-using System.Net.Sockets;
 
-namespace Qviipro {
+namespace QPro {
     /// <summary>
     /// </summary>
     public class BaseProxy {

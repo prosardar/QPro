@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Text.RegularExpressions;
 
-namespace Qviipro.HttpParser {
+namespace QPro.HttpParser {
     public class ItemHost : ItemBase {
         private readonly string host = String.Empty;
         private readonly int port = 80;

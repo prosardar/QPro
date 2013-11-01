@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Qviipro {
+namespace QPro {
     /// <summary>
     ///     Exception base class
     /// </summary>

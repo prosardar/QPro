@@ -5,14 +5,15 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.Caching;
 
-namespace Qviipro {
+namespace QPro {
     public struct QviiItemCache {
         public string Key { get; set; }
-        public bool IsStore { get; set; }
+        public bool IsAllStore { get; set; }
         public string RequestLine { get; set; }
         public object Response { get; set; }
         public Guid ResponseId { get; set; }
         public Guid RuleGuid { get; set; }
+        public int StatusCode { get; set; }
     }
 
     public class QviiCache {
@@ -48,8 +49,9 @@ namespace Qviipro {
                 ResponseId = transferItem.BrowserSocket.guid,
                 RequestLine = requestLine,
                 Response = null,
-                IsStore = storeIsAll,
-                Key = index
+                IsAllStore = storeIsAll,
+                Key = index,
+                StatusCode = -1
             };
 
             var policy = new CacheItemPolicy();
@@ -59,7 +61,7 @@ namespace Qviipro {
             ruleGuidLinkIndex.TryAdd(index, item.RuleGuid);
         }
 
-        public void SetValue(Guid responseId, object response) {
+        public void SetValue(Guid responseId, object response, int statusCode) {
             lock (sync) {
                 string index;
                 responseGuidLinkIndex.TryGetValue(responseId, out index);
@@ -69,7 +71,8 @@ namespace Qviipro {
                 }
                 var item = (QviiItemCache)cache[index];
                 item.Response = response;
-                cache[index] = item;
+                item.StatusCode = statusCode;
+                cache.Set(index, item, new CacheItemPolicy());
             }
         }
 
@@ -109,7 +112,7 @@ namespace Qviipro {
                 return true;
             }
             var item = (QviiItemCache)cache[indexes[0]];
-            if (item.IsStore == false) {
+            if (item.IsAllStore == false) {
                 throw new Exception("В кеш содержится много подобных элементов, в то время когда они не для хранения.");
             }
             return true;

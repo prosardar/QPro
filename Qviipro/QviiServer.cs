@@ -6,7 +6,7 @@ using System.Net.Sockets;
 using System.Threading;
 using ThreadState = System.Threading.ThreadState;
 
-namespace Qviipro {
+namespace QPro {
     public class QviiServer {
         private readonly ManualResetEvent listenThreadSwitch;
         private readonly bool useIPv6;

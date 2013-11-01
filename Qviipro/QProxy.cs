@@ -1,15 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using Qviipro.Rules;
+using QPro.Rules;
 
-namespace Qviipro {
-    public class QviiProxy : BaseProxy {
+namespace QPro {
+    public class QProxy : BaseProxy {
         public readonly List<QviiRule> BlackList;
         public readonly List<QviiRule> Rules;
         private readonly QviiCache cache;
 
-        public QviiProxy() {
+        public QProxy() {
             cache = new QviiCache();
 
             Rules = new List<QviiRule>();
@@ -94,10 +94,7 @@ namespace Qviipro {
 
         protected override void OnReceiveResponse(TransferItem item) {
             if (Rules.Where(rule => rule.IsAccept(item.HttpRequestLine.URL)).Any(rule => rule.IsStoreResponse)) {
-                var str = item.Transfer.GetContent();
-                if (string.IsNullOrEmpty(str) == false && item.ResponseStatusLine.StatusCode != 304) {
-                    cache.SetValue(item.BrowserSocket.guid, str);
-                }
+                cache.SetValue(item.BrowserSocket.guid, item.Response, item.ResponseStatusLine.StatusCode);
             }
         }
     }

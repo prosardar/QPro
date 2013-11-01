@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Qviipro {
+namespace QPro.HttpParser {
     public class ItemBase {
         private readonly string source = String.Empty;
 

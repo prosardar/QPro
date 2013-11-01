@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text;
 
-namespace Qviipro {
+namespace QPro {
     /// <summary>
     ///     Container for a parsed copy of some headers relevant to the proxy,
     ///     along with an unparsed copy of all the headers with their order

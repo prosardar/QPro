@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Qviipro.Rules {
+namespace QPro.Rules {
     public enum QviiBehavior {
         Skip,
         Redirect,
@@ -8,15 +8,16 @@ namespace Qviipro.Rules {
     }
 
     public abstract class QviiRule {
-        protected QviiRule() {
+        protected QviiRule(string pattern) {
             Guid = Guid.NewGuid();
+            Pattern = pattern;
         }
 
         public Guid Guid { get; set; }
 
         public QviiBehavior Behavior { get; set; }
 
-        public string Pattern { get; set; }
+        public string Pattern { get; private set; }
 
         public string RedirectPattern { get; set; }
 

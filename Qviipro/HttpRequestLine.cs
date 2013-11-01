@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Qviipro {
+namespace QPro {
     internal static class ParserHelper {
         public static string ParseProtocolVersion(string HttpProtocol) {
             if (HttpProtocol.StartsWith("HTTP/") == false) {

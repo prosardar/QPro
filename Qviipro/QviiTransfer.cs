@@ -6,7 +6,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Text;
 
-namespace Qviipro {
+namespace QPro {
     public class QviiTransfer {
         /// <summary>
         ///     Socket dedicated to the (client) browser-proxy communication
@@ -295,7 +295,6 @@ namespace Qviipro {
             item.BrowserSocket = BrowserSocket;
             item.RemoteSocket = RemoteSocket;
             item.State = State;
-            item.Transfer = this;
             OnReceiveRequest(item);
             RequestLine.URI = item.HttpRequestLine.URL;
 
@@ -408,8 +407,7 @@ namespace Qviipro {
                 }
             }
             if (bUseDefaultPersistPS) {
-                State.PersistConnectionRemoteSocket =
-                    (ResponseStatusLine.ProtocolVersion.Equals("1.0") == false);
+                State.PersistConnectionRemoteSocket = (ResponseStatusLine.ProtocolVersion.Equals("1.0") == false);
             }
 
             if (State.PersistConnectionRemoteSocket) {
@@ -419,15 +417,6 @@ namespace Qviipro {
             }
 
             State.NextStep = SendResponse;
-            var transferItem = new TransferItem();
-            transferItem.Headers = ResponseHeaders;
-            transferItem.HttpRequestLine = RequestLine;
-            transferItem.ResponseStatusLine = ResponseStatusLine;
-            transferItem.BrowserSocket = BrowserSocket;
-            transferItem.RemoteSocket = RemoteSocket;
-            transferItem.State = State;
-            transferItem.Transfer = this;
-            OnReceiveResponse(transferItem);
         }
 
         /// <summary>
@@ -435,8 +424,7 @@ namespace Qviipro {
         ///     local client, and end the request processing
         /// </summary>
         protected virtual void SendResponse() {
-            if ((ResponseHeaders.TransferEncoding == null &&
-                 ResponseHeaders.ContentLength == null) == false) {
+            if ((ResponseHeaders.TransferEncoding == null && ResponseHeaders.ContentLength == null) == false) {
                 // Transmit the response header to the client
                 SendResponseStatusAndHeaders();
             }
@@ -447,7 +435,8 @@ namespace Qviipro {
             if (RequestLine.Method.Equals("HEAD") ||
                 sc == 204 || sc == 304 || (sc >= 100 && sc <= 199)) {
                 SendResponseStatusAndHeaders();
-                goto no_message_body;
+                CallOnReceiveResponse(ResponseHeaders.ContentEncoding);
+                return;
             }
 
             bool responseMessageChunked = false;
@@ -458,7 +447,8 @@ namespace Qviipro {
             } else if (ResponseHeaders.ContentLength != null) {
                 responseMessageLength = (uint)ResponseHeaders.ContentLength;
                 if (responseMessageLength == 0) {
-                    goto no_message_body;
+                    CallOnReceiveResponse(ResponseHeaders.ContentEncoding);
+                    return;
                 }
             } else {
                 // We really should have been given a response
@@ -507,7 +497,19 @@ namespace Qviipro {
                 }
             }
 
-            no_message_body:
+            CallOnReceiveResponse(ResponseHeaders.ContentEncoding);
+        }
+
+        private void CallOnReceiveResponse(string responseMessageChunked) {
+            var transferItem = new TransferItem();
+            transferItem.Headers = ResponseHeaders;
+            transferItem.HttpRequestLine = RequestLine;
+            transferItem.ResponseStatusLine = ResponseStatusLine;
+            transferItem.BrowserSocket = BrowserSocket;
+            transferItem.RemoteSocket = RemoteSocket;
+            transferItem.State = State;
+            transferItem.Response = GetResponse(responseMessageChunked);
+            OnReceiveResponse(transferItem);
 
             if (State.PersistConnectionRemoteSocket == false && RemoteSocket != null) {
                 RemoteSocket.CloseSocket();
@@ -663,7 +665,7 @@ namespace Qviipro {
                 return host;
             }
 
-            hostname_from_header:
+        hostname_from_header:
             host = hh_rq.Host;
             if (host == null) {
                 throw new HttpProtocolBroken("No host specified");
@@ -680,18 +682,57 @@ namespace Qviipro {
             return host;
         }
 
-        private byte[] CopyRemoteBuffer() {
-            return RemoteSocket.CopyBuffer();
-        }
-
-        public string GetContent() {
-            var buffer = CopyRemoteBuffer();
-            byte[] b2;
-            using (var stream = GetResponseMessageStream(buffer)) {
-                b2 = new byte[8192];
-                stream.Read(b2, 0, b2.Length);
+        private string GetResponse(string responseMessageChunked) {
+            if (RemoteSocket.Response == null) {
+                return "";
             }
-            return Encoding.ASCII.GetString(b2);
+
+            var str = new StringBuilder();
+
+            var bytes = new byte[0];
+            foreach (byte[] byteb in RemoteSocket.Response) {
+                int oldIndex = bytes.Length;
+                Array.Resize(ref bytes, oldIndex + byteb.Length);
+                Array.Copy(byteb, 0, bytes, oldIndex, byteb.Length);
+            }
+
+            var nb = new byte[] { };
+            var strResponse = Encoding.UTF8.GetString(bytes);
+
+            int size = 0;
+            if (strResponse.IndexOf("\r\n") == 4) {
+                //var strSize = strResponse.Substring(0, 4);
+                //size = Convert.ToInt32(strSize, 16);
+                //nb = new byte[bytes.Length - 14];
+                Array.Copy(bytes, 6, nb, 0, nb.Length);
+            } else {
+                nb = new byte[bytes.Length];
+                Array.Copy(bytes, nb, nb.Length);
+            }
+
+            if (responseMessageChunked != null) {
+                if (responseMessageChunked.StartsWith("gzip") || responseMessageChunked.StartsWith("deflate")) {
+                    var b2 = new byte[] {};
+                    try {
+                        using (var stream = GetResponseMessageStream(nb)) {
+                            using (var memoryBuffer = new MemoryStream()) {
+                                stream.CopyTo(memoryBuffer);
+                                b2 = memoryBuffer.ToArray();
+                                memoryBuffer.Close();
+                            }
+                            stream.Close();
+                        }
+                    }
+                    catch (Exception e) {
+                        int t = 0;
+
+                    }
+                    str.Append(Encoding.UTF8.GetString(b2));
+                    return str.ToString();
+                }
+            }
+            str.Append(Encoding.UTF8.GetString(nb));
+            return str.ToString();
         }
 
         /// <summary>

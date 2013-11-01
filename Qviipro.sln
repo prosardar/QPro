@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2012
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Qviipro", "Qviipro\Qviipro.csproj", "{46E8B805-1793-4D51-838A-B4DA019C1719}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "QPro", "Qviipro\QPro.csproj", "{46E8B805-1793-4D51-838A-B4DA019C1719}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestQviiproApplication", "TestQviiproApplication\TestQviiproApplication.csproj", "{6636B16B-4250-4BA4-B88F-69F45F2619E8}"
 EndProject

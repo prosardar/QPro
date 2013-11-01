@@ -1,4 +1,4 @@
-﻿namespace Qviipro {
+﻿namespace QPro {
     public struct TransferItem {
         public SocketState BrowserSocket;
         public HttpHeaders Headers;
@@ -9,6 +9,6 @@
         public HttpStatusLine ResponseStatusLine;
         public RequestProcessingState State;
 
-        public QviiTransfer Transfer;
+        public string Response { get; set; }
     }
 }

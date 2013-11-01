@@ -1,0 +1,5 @@
+E:\Projects\Proxy\Qviipro\Qviipro\bin\Release\QPro.dll
+E:\Projects\Proxy\Qviipro\Qviipro\bin\Release\QPro.pdb
+E:\Projects\Proxy\Qviipro\Qviipro\bin\Release\log4net.dll
+E:\Projects\Proxy\Qviipro\Qviipro\obj\Release\QPro.dll
+E:\Projects\Proxy\Qviipro\Qviipro\obj\Release\QPro.pdb

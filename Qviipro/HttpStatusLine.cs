@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Qviipro {
+namespace QPro {
     /// <summary>
     ///     Container for a HTTP status line,
     ///     i.e. the first line of a HTTP response

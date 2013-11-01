@@ -1,4 +1,4 @@
-﻿namespace Qviipro {
+﻿namespace QPro {
     /// <summary>
     ///     Continuation delegate used in the request processing pipeline
     /// </summary>

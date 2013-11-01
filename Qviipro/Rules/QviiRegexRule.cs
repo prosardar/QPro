@@ -1,7 +1,14 @@
 ﻿using System.Text.RegularExpressions;
 
-namespace Qviipro.Rules {
+namespace QPro.Rules {
     public class QviiRegexRule : QviiRule {
+        private readonly Regex regex;
+
+        public QviiRegexRule(string pattern)
+            : base(pattern) {
+            regex = new Regex(Pattern);
+        }
+
         public override bool IsAccept(string url) {
             var regex = new Regex(Pattern);
             var matches = regex.Matches(url);
@@ -12,7 +19,6 @@ namespace Qviipro.Rules {
             if (Behavior != QviiBehavior.Redirect) {
                 return url;
             }
-            var regex = new Regex(Pattern);
             return regex.Replace(url, RedirectPattern);
         }
     }

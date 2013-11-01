@@ -47,9 +47,9 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Qviipro\Qviipro.csproj">
+    <ProjectReference Include="..\Qviipro\QPro.csproj">
       <Project>{46e8b805-1793-4d51-838a-b4da019c1719}</Project>
-      <Name>Qviipro</Name>
+      <Name>QPro</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

@@ -13,7 +13,7 @@ using System.IO.Compression;
 using System.Text;
 using System.Text.RegularExpressions;
 
-namespace Qviipro.HttpParser {
+namespace QPro.HttpParser {
     public class Parser {
         public enum MethodsList {
             /// <summary>

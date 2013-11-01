@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace Qviipro.HttpParser {
+namespace QPro.HttpParser {
     public class ItemCollection : Dictionary<string, ItemBase> {
         public ItemCollection() : base(StringComparer.CurrentCultureIgnoreCase) {}
 
