@@ -1,0 +1,7 @@
+E:\Projects\Proxy\QPro\TestQProApplication\obj\Release\TestQProApplication.csprojResolveAssemblyReference.cache
+E:\Projects\Proxy\QPro\TestQProApplication\bin\Release\TestQProApplication.exe
+E:\Projects\Proxy\QPro\TestQProApplication\bin\Release\TestQProApplication.pdb
+E:\Projects\Proxy\QPro\TestQProApplication\bin\Release\QPro.dll
+E:\Projects\Proxy\QPro\TestQProApplication\bin\Release\QPro.pdb
+E:\Projects\Proxy\QPro\TestQProApplication\obj\Release\TestQProApplication.exe
+E:\Projects\Proxy\QPro\TestQProApplication\obj\Release\TestQProApplication.pdb

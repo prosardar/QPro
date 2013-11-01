@@ -1,0 +1,5 @@
+E:\Projects\Proxy\QPro\QPro\bin\Debug\QPro.dll
+E:\Projects\Proxy\QPro\QPro\bin\Debug\QPro.pdb
+E:\Projects\Proxy\QPro\QPro\bin\Debug\log4net.dll
+E:\Projects\Proxy\QPro\QPro\obj\Debug\QPro.dll
+E:\Projects\Proxy\QPro\QPro\obj\Debug\QPro.pdb

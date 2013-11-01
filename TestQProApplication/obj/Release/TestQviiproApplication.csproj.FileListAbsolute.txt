@@ -1,0 +1,11 @@
+E:\Projects\Proxy\Qviipro\TestQviiproApplication\bin\Release\TestQviiproApplication.exe.config
+E:\Projects\Proxy\Qviipro\TestQviiproApplication\bin\Release\TestQviiproApplication.exe
+E:\Projects\Proxy\Qviipro\TestQviiproApplication\bin\Release\TestQviiproApplication.pdb
+E:\Projects\Proxy\Qviipro\TestQviiproApplication\obj\Release\TestQviiproApplication.csprojResolveAssemblyReference.cache
+E:\Projects\Proxy\Qviipro\TestQviiproApplication\obj\Release\TestQviiproApplication.exe
+E:\Projects\Proxy\Qviipro\TestQviiproApplication\obj\Release\TestQviiproApplication.pdb
+E:\Projects\Proxy\Qviipro\TestQviiproApplication\bin\Release\QPro.dll
+E:\Projects\Proxy\Qviipro\TestQviiproApplication\bin\Release\QPro.pdb
+E:\Projects\Proxy\QPro\TestQviiproApplication\bin\Release\TestQviiproApplication.exe.config
+E:\Projects\Proxy\QPro\TestQviiproApplication\obj\Release\TestQviiproApplication.exe
+E:\Projects\Proxy\QPro\TestQviiproApplication\obj\Release\TestQviiproApplication.pdb
